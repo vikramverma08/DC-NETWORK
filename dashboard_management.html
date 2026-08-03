@@ -1,0 +1,1192 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Management Dashboard</title>
+<meta name="description" content="Administrative dashboard for the diagnostic network — centres, services, TMT, online consultation and home-collection coverage.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<style>
+
+:root{
+  --green:#16A34A; --green-deep:#0F7A37; --green-soft:#E8F6EE; --green-tint:#F3FBF6;
+  --ink:#0C1B12; --slate:#5A6B61; --line:#E4EBE6; --line-soft:#EEF3EF;
+  --bg:#F6F8F6; --card:#FFFFFF; --amber:#C8821A; --amber-soft:#FBF1E0; --rose:#B23B4E; --rose-soft:#FBE9EC;
+  --blue:#2B5FA8; --blue-soft:#EAF1FB;
+  --shadow:0 1px 2px rgba(12,27,18,.04),0 8px 24px -12px rgba(12,27,18,.10);
+  --shadow-lg:0 24px 60px -24px rgba(12,27,18,.28);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:'Inter',sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;font-size:14px;line-height:1.55}
+.mono{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}
+h1,h2,h3,h4{font-family:'Sora',sans-serif;margin:0;letter-spacing:-.02em;color:var(--ink)}
+a{color:var(--green-deep);text-decoration:none}
+.muted{color:var(--slate)}
+.shell{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+.side{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;padding:24px 16px;z-index:40}
+.brand{display:flex;align-items:center;gap:11px;padding:0 6px 22px;margin-bottom:18px}
+.mark{width:40px;height:40px;border-radius:11px;background:var(--green);display:grid;place-items:center;flex:none;box-shadow:0 6px 18px -6px rgba(22,163,74,.7)}
+.mark svg{width:23px;height:23px}
+.brand b{font-family:'Sora';font-weight:700;font-size:16px;letter-spacing:-.02em;display:block;line-height:1.1}
+.brand small{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase}
+.nav{display:flex;flex-direction:column;gap:3px;flex:1}
+.nav a{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:9px;font-weight:500;font-size:13.5px;cursor:pointer;transition:.16s;border:1px solid transparent}
+.nav a svg{width:17px;height:17px;opacity:.8;flex:none}
+.nav .grp{font-size:10px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;padding:14px 12px 5px;opacity:.55}
+.side-foot{padding:14px 10px 4px;font-size:11px;line-height:1.5}
+.main{min-width:0;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:30;background:rgba(246,248,246,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:15px 30px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.topbar h1{font-size:19px;font-weight:700}
+.topbar .sub{font-size:12.5px;color:var(--slate);margin-top:1px}
+.topbar .spacer{flex:1}
+.pill{display:inline-flex;align-items:center;gap:7px;background:var(--green-soft);color:var(--green-deep);padding:6px 13px;border-radius:999px;font-weight:600;font-size:12px;border:1px solid #CDEAD8}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(22,163,74,.18)}
+.content{padding:26px 30px 60px;max-width:1480px;width:100%}
+.view{display:none;animation:fade .35s ease}
+.view.show{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.sec-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin:6px 0 18px;flex-wrap:wrap}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--green);display:flex;align-items:center;gap:8px}
+.eyebrow::before{content:"";width:22px;height:2px;background:var(--green);border-radius:2px}
+.sec-head h2{font-size:25px;font-weight:700;margin-top:7px}
+.sec-head p{color:var(--slate);font-size:13px;margin:5px 0 0;max-width:580px}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:14px;margin-bottom:26px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:17px 18px;position:relative;box-shadow:var(--shadow);overflow:hidden;transition:.18s}
+.kpi:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:#CDEAD8}
+.kpi .ic{width:38px;height:38px;border-radius:11px;background:var(--green-soft);display:grid;place-items:center;margin-bottom:13px}
+.kpi .ic svg{width:19px;height:19px;stroke:var(--green-deep)}
+.kpi .num{font-family:'Sora';font-weight:800;font-size:31px;line-height:1;letter-spacing:-.03em}
+.kpi .lab{font-size:12px;color:var(--slate);margin-top:6px;font-weight:500;line-height:1.35}
+.kpi.feature{background:linear-gradient(135deg,#16A34A,#0F7A37);border:none;color:#fff}
+.kpi.feature .num,.kpi.feature .lab{color:#fff}
+.kpi.feature .ic{background:rgba(255,255,255,.16)}
+.kpi.feature .ic svg{stroke:#fff}
+.kpi.blue .ic{background:var(--blue-soft)}.kpi.blue .ic svg{stroke:var(--blue)}
+.kpi .edge{position:absolute;right:-18px;top:-18px;width:80px;height:80px;border-radius:50%;background:radial-gradient(circle,rgba(22,163,74,.08),transparent 70%)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);margin-bottom:22px}
+.panel-h{padding:17px 22px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.panel-h h3{font-size:15.5px;font-weight:600;display:flex;align-items:center;gap:9px}
+.panel-h h3 .tag{font-size:11px;font-weight:600;color:var(--green-deep);background:var(--green-soft);padding:3px 9px;border-radius:7px}
+.panel-b{padding:20px 22px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.filters{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.fld label{display:block;font-size:11px;font-weight:600;color:var(--slate);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.fld select,.fld input{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:13px;font-family:'Inter';color:var(--ink);transition:.15s}
+.fld select:focus,.fld input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(22,163,74,.13)}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border-radius:10px;font-weight:600;font-size:12.5px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;transition:.15s;font-family:'Inter'}
+.btn svg{width:15px;height:15px}
+.btn:hover{border-color:var(--green);color:var(--green-deep);background:var(--green-tint)}
+.btn.primary{background:var(--green);color:#fff;border-color:var(--green)}
+.btn.primary:hover{background:var(--green-deep);color:#fff}
+.btn.danger{color:var(--rose);border-color:#F2C5CD}
+.btn.danger:hover{background:var(--rose-soft);border-color:var(--rose);color:var(--rose)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:6px 10px;font-size:11.5px}
+.btn-row{display:flex;gap:9px;flex-wrap:wrap}
+table.dataTable{font-size:13px;border-collapse:separate!important}
+table.dataTable thead th{background:var(--green-tint);color:var(--ink);font-family:'Sora';font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--line)!important;padding:12px;white-space:nowrap}
+table.dataTable tbody td{padding:11px 12px;border-bottom:1px solid var(--line-soft);vertical-align:middle}
+table.dataTable tbody tr:hover{background:var(--green-tint)}
+.dc-name{font-weight:600}
+.dc-addr{font-size:11.5px;color:var(--slate);max-width:280px;line-height:1.4}
+.badge-c{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:7px;font-size:11px;font-weight:600;white-space:nowrap}
+.b-nabl{background:var(--green-soft);color:var(--green-deep)}
+.b-iso{background:var(--blue-soft);color:var(--blue)}
+.b-both{background:linear-gradient(90deg,var(--green-soft),var(--blue-soft));color:#246b4d}
+.svc-yes{color:var(--green);font-weight:700}
+.svc-out{color:var(--amber);font-weight:600}
+.svc-no{color:#C2CCC6}
+.lnk-loc{display:inline-flex;align-items:center;gap:5px;font-weight:600;font-size:12px}
+.contact-cell{white-space:nowrap;font-weight:500}
+.dataTables_wrapper .dataTables_paginate .paginate_button.current{background:var(--green)!important;border-color:var(--green)!important;color:#fff!important;border-radius:8px}
+.dataTables_wrapper .dataTables_paginate .paginate_button{border-radius:8px!important;padding:4px 11px!important}
+.dataTables_wrapper .dataTables_filter input{border:1px solid var(--line);border-radius:9px;padding:7px 11px;margin-left:8px}
+.dataTables_wrapper .dataTables_length select{border-radius:8px;padding:5px 8px}
+.matrix-wrap{overflow-x:auto}
+table.matrix{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5px}
+table.matrix th,table.matrix td{padding:10px;text-align:center;border-bottom:1px solid var(--line-soft)}
+table.matrix thead th{background:var(--ink);color:#fff;font-family:'Sora';font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em;position:sticky;top:0}
+table.matrix thead th:first-child{text-align:left;border-radius:10px 0 0 0}
+table.matrix thead th:last-child{border-radius:0 10px 0 0}
+table.matrix td:first-child{text-align:left;font-weight:600;white-space:nowrap;position:sticky;left:0;background:#fff}
+table.matrix tbody tr:hover td{background:var(--green-tint)}
+table.matrix tbody tr:hover td:first-child{background:var(--green-tint)}
+.cell-in{color:var(--green);font-size:16px;font-weight:700}
+.cell-out{display:inline-block;font-size:10px;font-weight:700;color:var(--amber);background:var(--amber-soft);padding:2px 6px;border-radius:5px}
+.cell-no{color:#D5DDD8;font-size:15px}
+.leaflet-popup-content-wrapper{border-radius:13px;box-shadow:var(--shadow-lg)}
+.leaflet-popup-content{margin:14px 16px;font-family:'Inter'}
+.pop-name{font-family:'Sora';font-weight:700;font-size:14px;margin-bottom:3px}
+.pop-meta{font-size:12px;color:var(--slate);margin-bottom:8px;line-height:1.45}
+.pop-svcs{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0}
+.pop-chip{font-size:10px;font-weight:600;background:var(--green-soft);color:var(--green-deep);padding:2px 7px;border-radius:6px}
+.pop-btns{display:flex;gap:6px;margin-top:9px}
+.pop-btns a{flex:1;text-align:center;font-size:11px;font-weight:600;padding:6px;border-radius:8px;background:var(--green);color:#fff}
+.pop-btns a.alt{background:var(--green-soft);color:var(--green-deep)}
+.mk{width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2.5px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,.3);display:grid;place-items:center}
+.mk b{transform:rotate(45deg);color:#fff;font-size:11px;font-weight:700;font-family:'Sora'}
+.mk.dc{background:var(--green)}.mk.tmt{background:var(--blue)}.mk.hv{background:var(--amber)}
+.rank-row{display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid var(--line-soft)}
+.rank-row:last-child{border:none}
+.rank-n{width:26px;height:26px;border-radius:8px;background:var(--green-soft);color:var(--green-deep);font-family:'Sora';font-weight:700;font-size:13px;display:grid;place-items:center;flex:none}
+.rank-row:nth-child(1) .rank-n{background:var(--green);color:#fff}
+.rank-city{font-weight:600;font-size:13.5px;flex:none;width:120px}
+.rank-bar{flex:1;height:9px;background:var(--line-soft);border-radius:6px;overflow:hidden}
+.rank-fill{height:100%;background:linear-gradient(90deg,#16A34A,#34D17F);border-radius:6px;transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.rank-val{font-family:'JetBrains Mono';font-weight:600;font-size:12.5px;width:34px;text-align:right;color:var(--slate)}
+.note{background:var(--amber-soft);border:1px solid #F0DCB4;border-radius:12px;padding:14px 16px;font-size:12.5px;color:#80591A;display:flex;gap:11px;align-items:flex-start}
+.note svg{width:18px;height:18px;flex:none;stroke:var(--amber);margin-top:1px}
+.note.green{background:var(--green-soft);border-color:#CDEAD8;color:var(--green-deep)}
+.note.green svg{stroke:var(--green-deep)}
+.drop{border:2px dashed var(--line);border-radius:14px;padding:34px;text-align:center;transition:.18s;cursor:pointer;background:var(--green-tint)}
+.drop:hover,.drop.drag{border-color:var(--green);background:var(--green-soft)}
+.drop svg{width:34px;height:34px;stroke:var(--green);margin-bottom:10px}
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:18px;flex-wrap:wrap}
+.tab{padding:10px 16px;font-weight:600;font-size:13px;color:var(--slate);cursor:pointer;border-bottom:2px solid transparent;transition:.15s}
+.tab.active{color:var(--green-deep);border-bottom-color:var(--green)}
+.code-box{background:#0C1B12;color:#A8E6BE;border-radius:12px;padding:16px;font-family:'JetBrains Mono';font-size:11.5px;line-height:1.6;overflow-x:auto;white-space:pre}
+.chiprow{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.chip{font-size:11.5px;font-weight:600;padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--slate);cursor:pointer;transition:.15s}
+.chip:hover{border-color:var(--green);color:var(--green-deep)}
+.chip.on{background:var(--green);color:#fff;border-color:var(--green)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--slate);margin-top:12px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.lg-dot{width:11px;height:11px;border-radius:3px}
+.res-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;margin-top:22px}
+.res-card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:18px;box-shadow:var(--shadow);transition:.18s}
+.res-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+.res-card .rc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:9px}
+.res-card .rc-name{font-family:'Sora';font-weight:700;font-size:14.5px;line-height:1.25}
+.res-card .rc-dist{font-family:'JetBrains Mono';font-size:11px;font-weight:600;color:var(--green-deep);background:var(--green-soft);padding:4px 9px;border-radius:8px;white-space:nowrap}
+.res-card .rc-addr{font-size:12px;color:var(--slate);line-height:1.45;margin-bottom:11px}
+.res-card .rc-foot{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line-soft);padding-top:11px;margin-top:4px}
+.finder{background:linear-gradient(135deg,#0C1B12,#13351F);border-radius:20px;padding:34px;color:#fff;position:relative;overflow:hidden}
+.finder::after{content:"";position:absolute;right:-60px;top:-60px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(22,163,74,.28),transparent 70%)}
+.finder h2{color:#fff;font-size:26px}
+.finder p{color:#9FBBA9;margin:8px 0 22px;max-width:540px;position:relative}
+.finder-box{display:flex;gap:10px;max-width:580px;position:relative;flex-wrap:wrap}
+.finder-box input{flex:1;min-width:200px;padding:14px 18px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff;font-size:15px;font-family:'JetBrains Mono'}
+.finder-box input::placeholder{color:#6E927C}
+.finder-box input:focus{outline:none;border-color:var(--green);background:rgba(255,255,255,.1)}
+.modal-bg{position:fixed;inset:0;background:rgba(12,27,18,.55);backdrop-filter:blur(4px);z-index:200;display:none;overflow-y:auto;padding:20px;-webkit-overflow-scrolling:touch}
+.modal-bg.show{display:block}
+.modal{background:#fff;border-radius:18px;width:100%;max-width:640px;margin:20px auto;box-shadow:var(--shadow-lg);display:flex;flex-direction:column;max-height:calc(100vh - 40px)}
+.modal-h{flex:none;padding:18px 22px;border-bottom:1px solid var(--line-soft);display:flex;justify-content:space-between;align-items:center}
+.modal-h h3{font-size:17px}
+.modal-b{padding:22px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.modal-b .fld{margin-bottom:14px}
+.x{cursor:pointer;width:32px;height:32px;border-radius:9px;display:grid;place-items:center;border:1px solid var(--line);background:#fff}
+.x:hover{background:var(--bg)}
+.cov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:5px;margin-top:8px}
+.cov-cell{aspect-ratio:1;border-radius:6px;display:grid;place-items:center;font-size:8.5px;font-weight:600;font-family:'JetBrains Mono';cursor:pointer;transition:.12s}
+.cov-cell:hover{transform:scale(1.18);z-index:2;box-shadow:var(--shadow)}
+.mobnav{display:none}
+@media(max-width:1080px){.grid-2,.grid-3{grid-template-columns:1fr}}
+@media(max-width:860px){
+  .shell{grid-template-columns:1fr}.side{display:none}
+  .mobnav{display:flex;position:sticky;top:0;z-index:50;padding:10px 14px;gap:8px;align-items:center;overflow-x:auto}
+  .mobnav .mlogo{display:flex;align-items:center;gap:8px;color:#fff;font-family:'Sora';font-weight:700;font-size:14px;flex:none;padding-right:10px}
+  .mobnav .mlogo .mark{width:30px;height:30px;border-radius:8px}.mobnav .mlogo .mark svg{width:17px;height:17px}
+  .mobnav a{flex:none;font-size:12.5px;font-weight:600;padding:7px 12px;border-radius:8px;white-space:nowrap;cursor:pointer}
+  .content{padding:18px 16px 50px}.topbar{padding:13px 16px}.topbar h1{font-size:16px}.finder{padding:22px}
+}
+
+/* management-specific accents */
+.side{background:linear-gradient(180deg,#0C1B12 0%,#10301D 100%);color:#D8E6DD;border-right:1px solid rgba(255,255,255,.06)}
+.brand{border-bottom:1px solid rgba(255,255,255,.08)}
+.brand b{color:#fff}.brand small{color:#7FA98D}
+.nav a{color:#AEC5B6}.nav a:hover{background:rgba(255,255,255,.05);color:#fff}
+.nav a.active{background:var(--green);color:#fff;border-color:rgba(255,255,255,.12)}.nav a.active svg{opacity:1}
+.nav .grp{color:#7FA98D}
+.side-foot{border-top:1px solid rgba(255,255,255,.08);color:#6E927C}
+.side-foot b{color:#9FBBA9}
+.role-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(22,163,74,.18);color:#9FE7B6;border:1px solid rgba(22,163,74,.35);padding:5px 10px;border-radius:8px;font-size:11px;font-weight:600;margin:0 6px}
+.mobnav{background:#0C1B12}.mobnav a{color:#AEC5B6}.mobnav a.active{background:var(--green);color:#fff}
+</style></head><body>
+<div class="shell">
+  <aside class="side">
+    <div class="brand"><div class="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.35-7-10a4 4 0 0 1 7-2.65A4 4 0 0 1 19 11c0 5.65-7 10-7 10Z" fill="#fff"/><path d="M9.2 11.2h1.6l.7-2 1.2 4 .9-2h1.4" stroke="#16A34A" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><b>Diagnostic Network</b><small>Management</small></div></div>
+    <nav class="nav" id="nav">
+      <a data-v="overview" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Overview</a>
+      <div class="grp">Network</div>
+      <a data-v="centres"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Manage Centres</a>
+      <a data-v="matrix"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>Service Matrix</a>
+      <a data-v="map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m9 4 6 2 5-2v14l-5 2-6-2-5 2V6l5-2Z"/><path d="M9 4v14M15 6v14"/></svg>GIS Map</a>
+      <div class="grp">Service networks</div>
+      <a data-v="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-7 9 7M5 10v10h14V10"/><path d="M9 21v-6h6v6"/></svg>Home Collection</a>
+      <a data-v="outsource"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Outsource &amp; Payments</a>
+      <div class="grp">Configure</div>
+      <a data-v="services"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="18" cy="18" r="2"/></svg>Service Master</a>
+      <div class="grp">Insight</div>
+      <a data-v="analytics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 14l3-4 3 2 5-7"/></svg>Coverage Analytics</a>
+      <a data-v="admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M5 5l2 2M17 17l2 2M2 12h3M19 12h3M5 19l2-2M17 7l2-2"/></svg>Data & Roles</a>
+    </nav>
+    <div class="side-foot"><b>Admin session</b><br>Master DB · as on 08-Jun-2026<br></div>
+  </aside>
+  <div class="mobnav" id="mobnav"><div class="mlogo"><div class="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.35-7-10a4 4 0 0 1 7-2.65A4 4 0 0 1 19 11c0 5.65-7 10-7 10Z" fill="#fff"/><path d="M9.2 11.2h1.6l.7-2 1.2 4 .9-2h1.4" stroke="#16A34A" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>Mgmt</div>
+    <a data-v="overview" class="active">Overview</a><a data-v="centres">Centres</a><a data-v="matrix">Matrix</a><a data-v="map">Map</a><a data-v="home">Home</a><a data-v="outsource">Outsource</a><a data-v="services">Services</a><a data-v="analytics">Analytics</a><a data-v="admin">Admin</a>
+  </div>
+
+  <main class="main">
+    <div class="topbar">
+      <div><h1 id="pageTitle">Network Overview</h1><div class="sub" id="pageSub">Administrative control centre</div></div>
+      <div class="spacer"></div>
+      <span class="role-badge"><svg viewBox="0 0 24 24" width="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 6v6c0 5 8 8 8 8s8-3 8-8V6Z"/></svg>Role: Admin</span>
+      <span class="pill"><span class="dot"></span><span id="liveCount">27</span> centres</span>
+      <a class="btn" href="dashboard_client_portal.html" target="_blank"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Open Client Portal</a>
+    </div>
+    <div class="content">
+
+      <!-- OVERVIEW -->
+      <section class="view show" id="v-overview">
+        <div class="sec-head"><div><div class="eyebrow">Master dashboard</div><h2>Diagnostic Network</h2><p>One master database powering centres, services, TMT, online consultation and home-collection coverage — with full administrative control.</p></div></div>
+        <div class="kpi-grid" id="kpiGrid"></div>
+        <div class="grid-2">
+          <div class="panel"><div class="panel-h"><h3>Centres by city <span class="tag">top coverage</span></h3></div><div class="panel-b"><div id="cityRank"></div></div></div>
+          <div class="panel"><div class="panel-h"><h3>Accreditation mix</h3></div><div class="panel-b"><canvas id="accChart" height="230"></canvas><div class="legend" id="accLegend"></div></div></div>
+        </div>
+        <div class="panel"><div class="panel-h"><h3>Service availability across the network</h3><span class="muted" style="font-size:12px">In-house · outsourced · unavailable</span></div><div class="panel-b"><canvas id="svcChart" height="118"></canvas></div></div>
+      </section>
+
+      <!-- MANAGE CENTRES (CRUD) -->
+      <section class="view" id="v-centres">
+        <div class="sec-head"><div><div class="eyebrow">Editable register</div><h2>Manage Centres</h2><p>Add, edit or remove centres. Changes flow instantly to every view, map and analytic in this session.</p></div>
+          <div class="btn-row">
+            <button class="btn" onclick="exportTable('csv')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg>CSV</button>
+            <button class="btn" onclick="exportTable('excel')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 8l6 8M15 8l-6 8"/></svg>Excel</button>
+            <button class="btn" onclick="exportTable('pdf')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9V3h12v6M6 18H4v-6h16v6h-2M8 14h8v7H8z"/></svg>PDF</button>
+            <button class="btn primary" onclick="openEditor()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>Add centre</button>
+          </div>
+        </div>
+        <div class="panel"><div class="panel-h"><h3>Filters</h3><button class="btn ghost" onclick="resetFilters()">Reset all</button></div><div class="panel-b">
+          <div class="filters" id="filters">
+            <div class="fld"><label>City</label><select id="f-city"><option value="">All cities</option></select></div>
+            <div class="fld"><label>Accreditation</label><select id="f-acc"><option value="">All</option><option value="nabl">NABL</option><option value="iso">ISO</option></select></div>
+            <div class="fld"><label>Pincode</label><select id="f-pin"><option value="">All pincodes</option></select></div>
+            <div class="fld"><label>TMT</label><select id="f-tmt"><option value="">Any</option><option value="IN">In-house</option><option value="OUT">Outsourced</option></select></div>
+            <div class="fld"><label>Ultrasound / Echo</label><select id="f-usg"><option value="">Any</option><option value="IN">In-house</option><option value="OUT">Outsourced</option><option value="NA">Not available</option></select></div>
+            <div class="fld"><label>BMD</label><select id="f-bmd"><option value="">Any</option><option value="IN">Available</option></select></div>
+            <div class="fld"><label>Online Consult</label><select id="f-con"><option value="">Any</option><option value="IN">Available</option></select></div>
+          </div></div></div>
+        <div class="panel"><div class="panel-h"><h3>All centres <span class="tag" id="dirCount"></span></h3></div><div class="panel-b" style="overflow-x:auto">
+          <table id="dcTable" class="display" style="width:100%"><thead><tr>
+            <th>#</th><th>Centre</th><th>City</th><th>Pincode</th><th>Accred.</th><th>TMT</th><th>USG/Echo</th><th>Vaccin.</th><th>Online Consult</th><th>SPOC</th><th>Contact</th><th>Actions</th>
+          </tr></thead><tbody></tbody></table>
+        </div></div>
+        <div class="note"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><div>In the source register, pathology / TMT / ECG / X-Ray / PFT / Audiometry share one status per centre (column 7), and Ultrasound + 2D Echo share one (column 8). The editor reflects that grouping. “Online Consult” is the On-Line / After-Report Consultation column.</div></div>
+      </section>
+
+      <!-- SERVICE MATRIX -->
+      <section class="view" id="v-matrix">
+        <div class="sec-head"><div><div class="eyebrow">Capability grid</div><h2>Service Coverage Matrix</h2><p>Every centre against every service. In-house, outsourced or not offered.</p></div><div class="btn-row"><button class="btn" onclick="exportServiceExcel()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 8l6 8M15 8l-6 8"/></svg>Excel</button><button class="btn primary" onclick="exportPDF('service')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9V3h12v6M6 18H4v-6h16v6h-2M8 14h8v7H8z"/></svg>PDF</button></div></div>
+        <div class="panel"><div class="panel-b matrix-wrap"><table class="matrix" id="matrixTable"><thead><tr id="matrixHead"><th>Centre</th></tr></thead><tbody></tbody></table></div>
+        <div class="panel-b" style="border-top:1px solid var(--line-soft)"><div class="legend"><span><span class="cell-in">✓</span> In-house</span><span><span class="cell-out">OUT</span> Outsourced</span><span><span class="cell-no">✕</span> Not available</span></div></div></div>
+      </section>
+
+      <!-- GIS MAP -->
+      <section class="view" id="v-map">
+        <div class="sec-head"><div><div class="eyebrow">Interactive GIS</div><h2>Network & Coverage Map</h2><p>Toggle layers for centres, TMT, online consultation and home-collection pincodes. Filter by city.</p></div>
+          <div class="fld" style="min-width:180px"><label>Zoom to city</label><select id="mapCity"><option value="">All locations</option></select></div></div>
+        <div class="panel" style="overflow:hidden"><div class="panel-h"><h3>Coverage footprint</h3>
+          <div class="chiprow" id="layerToggles">
+            <span class="chip on" data-layer="dc">Centres</span>
+            <span class="chip on" data-layer="tmt">TMT</span>
+            <span class="chip" data-layer="online">Online consult</span>
+            <span class="chip" data-layer="hv">Home collection</span>
+          </div>
+        </div><div id="map" style="height:560px"></div></div>
+        <div class="legend"><span><span class="lg-dot" style="background:var(--green)"></span>Diagnostic centre</span><span><span class="lg-dot" style="background:var(--blue)"></span>TMT centre</span><span><span class="lg-dot" style="background:var(--amber)"></span>Home-collection pincode</span></div>
+      </section>
+
+      <!-- HOME COLLECTION -->
+      <section class="view" id="v-home">
+        <div class="sec-head"><div><div class="eyebrow">Doorstep network</div><h2>Home Collection Network</h2><p>Serviceable pincodes for home sample collection across 4 states, with charges and locality coverage.</p></div></div>
+        <div class="kpi-grid" id="homeKpi"></div>
+        <div class="finder">
+          <h2>Check home-collection serviceability</h2>
+          <p>Enter a 6-digit pincode to confirm doorstep collection, charges and the nearest centre. Or search by city.</p>
+          <div class="finder-box"><input id="homeInput" placeholder="e.g. 110001  or  Kanpur" autocomplete="off"><button class="btn primary" style="padding:14px 22px" onclick="runHome()">Check coverage</button></div>
+        </div>
+        <div id="homeMsg" style="margin-top:18px"></div>
+        <div class="res-grid" id="homeResults"></div>
+        <div class="grid-2" style="margin-top:8px">
+          <div class="panel"><div class="panel-h"><h3>Coverage by state</h3></div><div class="panel-b"><canvas id="homeState" height="240"></canvas><div class="legend" id="homeStateLegend"></div></div></div>
+          <div class="panel"><div class="panel-h"><h3>Charge distribution</h3></div><div class="panel-b"><canvas id="homeCharge" height="240"></canvas><div class="legend" id="homeChargeLegend"></div></div></div>
+        </div>
+        <div class="panel"><div class="panel-h"><h3>Serviceable pincode register <span class="tag" id="homeTblCount"></span></h3>
+          <div class="fld" style="min-width:160px;margin:0"><select id="homeCityFilter"><option value="">All cities</option></select></div></div>
+          <div class="panel-b" style="overflow-x:auto"><table id="homeTable" class="display" style="width:100%"><thead><tr><th>Pincode</th><th>City / District</th><th>State</th><th>Collection charge</th><th>Covered localities</th></tr></thead><tbody></tbody></table></div></div>
+      </section>
+
+      <!-- OUTSOURCE & PAYMENTS -->
+      <section class="view" id="v-outsource">
+        <div class="sec-head"><div><div class="eyebrow">Billing control</div><h2>Outsource Service Management</h2><p>Outsourced imaging (Ultrasound, 2D Echo, Sono-mammography) is billed before report release. Track the charge, mark payment received, then release.</p></div>
+          <div class="btn-row"><button class="btn" onclick="exportPDF('outsource')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9V3h12v6M6 18H4v-6h16v6h-2M8 14h8v7H8z"/></svg>PDF register</button></div></div>
+        <div class="kpi-grid" id="osKpi"></div>
+        <div class="panel"><div class="panel-h"><h3>Outsource payment register <span class="tag" id="osCount"></span></h3>
+          <div class="fld" style="min-width:160px;margin:0"><select id="osFilter" onchange="renderOutsource()"><option value="">All statuses</option><option value="pending">Pending payment</option><option value="received">Payment received</option></select></div></div>
+          <div class="panel-b" style="overflow-x:auto"><table class="matrix" id="osTable"><thead><tr><th>Centre</th><th>City</th><th>Service</th><th>Charge (Rs)</th><th>Payment status</th><th>Report release</th><th>Action</th></tr></thead><tbody></tbody></table></div></div>
+        <div class="note green"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M20 6 9 17l-5-5"/></svg><div>Workflow: <b>Pending Payment → Payment Received → Report Release Allowed.</b> Status is saved on this device. Charges are taken from each centre’s record and can be edited in the centre profile or the Service Master defaults.</div></div>
+      </section>
+
+      <!-- SERVICE MASTER (pricing control) -->
+      <section class="view" id="v-services">
+        <div class="sec-head"><div><div class="eyebrow">Dynamic configuration</div><h2>Service Master Management</h2><p>Add, edit, enable or remove services and set default outsource charges — without touching code. New services appear automatically in the matrix, filters, KPIs, editor and exports.</p></div>
+          <button class="btn primary" onclick="openSvcEditor()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>Add service</button></div>
+        <div class="panel"><div class="panel-h"><h3>Service catalogue <span class="tag" id="svcMasterCount"></span></h3></div>
+          <div class="panel-b" style="overflow-x:auto"><table class="matrix" id="svcMasterTable"><thead><tr><th>Service</th><th>Category</th><th>Centres offering</th><th>Outsourced billing</th><th>Default charge (Rs)</th><th>Status</th><th>Actions</th></tr></thead><tbody></tbody></table></div></div>
+        <div class="note"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><div>Example: adding <b>MRI</b> here instantly creates an MRI column in the service matrix and an MRI field in every centre editor. Disabling a service hides it from client-facing views while keeping its data.</div></div>
+      </section>
+
+      <!-- ANALYTICS -->
+      <section class="view" id="v-analytics">
+        <div class="sec-head"><div><div class="eyebrow">Geographic intelligence</div><h2>Coverage Analytics</h2><p>Centre footprint and home-collection coverage by state, city and service.</p></div></div>
+        <div class="grid-2">
+          <div class="panel"><div class="panel-h"><h3>Centres per city</h3></div><div class="panel-b"><canvas id="cityBar" height="300"></canvas></div></div>
+          <div class="panel"><div class="panel-h"><h3>Home-collection pincodes per city <span class="tag">top 12</span></h3></div><div class="panel-b"><canvas id="hvCityBar" height="300"></canvas></div></div>
+        </div>
+        <div class="grid-2">
+          <div class="panel"><div class="panel-h"><h3>Centre distribution by state</h3></div><div class="panel-b"><canvas id="stateDoughnut" height="250"></canvas><div class="legend" id="stateLegend"></div></div></div>
+          <div class="panel"><div class="panel-h"><h3>Service-wise availability</h3></div><div class="panel-b"><canvas id="svcBar2" height="250"></canvas></div></div>
+        </div>
+        <div class="panel"><div class="panel-h"><h3>City ranking &amp; service depth</h3></div><div class="panel-b" style="overflow-x:auto">
+          <table class="matrix" id="cityTable"><thead><tr><th>City</th><th>Centres</th><th>NABL</th><th>ISO</th><th>TMT</th><th>In-house USG</th><th>Online consult</th><th>HV pincodes</th></tr></thead><tbody></tbody></table></div></div>
+      </section>
+
+      <!-- ADMIN / ROLES -->
+      <section class="view" id="v-admin">
+        <div class="sec-head"><div><div class="eyebrow">Data management</div><h2>Data, Roles & Integration</h2><p>Replace the master database from Excel, review the schema, role model and API readiness.</p></div></div>
+        <div class="note green" style="margin-bottom:18px"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg><div><b>Single source of truth active.</b> Every In-House ↔ Outsourced toggle saves automatically and syncs to the Executive Dashboard and Client Portal opened in this browser. <button class="btn sm" style="margin-left:10px" onclick="resetNetworkState()">Reset to original Excel data</button></div></div>
+        <div class="tabs" id="adminTabs">
+          <div class="tab active" data-t="upload">Upload data</div>
+          <div class="tab" data-t="roles">Roles</div>
+          <div class="tab" data-t="schema">Schema</div>
+          <div class="tab" data-t="api">API readiness</div>
+        </div>
+        <div id="t-upload">
+          <div class="panel"><div class="panel-h"><h3>Replace master database</h3></div><div class="panel-b">
+            <div class="drop" id="dropZone" onclick="document.getElementById('xlsInput').click()"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M12 16V4m0 0 5 5m-5-5-5 5"/><path d="M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2"/></svg>
+              <div style="font-weight:600;font-size:14px">Drop the <b>DC LIST</b> workbook here</div>
+              <div class="muted" style="font-size:12.5px;margin-top:5px">or click to browse · reads both “DC LIST” &amp; “Home Visit Pincodes” sheets</div></div>
+            <input type="file" id="xlsInput" accept=".xlsx,.xls" style="display:none">
+            <div id="uploadStatus" style="margin-top:14px"></div>
+            <div class="note green" style="margin-top:16px"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M20 6 9 17l-5-5"/></svg><div>Parsing runs entirely in your browser — nothing leaves this device. On a successful read, the master DB and every view refresh together.</div></div>
+          </div></div>
+        </div>
+        <div id="t-roles" style="display:none">
+          <div class="panel"><div class="panel-h"><h3>Role-based access model</h3></div><div class="panel-b" style="overflow-x:auto">
+            <table class="matrix"><thead><tr><th>Capability</th><th>Admin</th><th>Manager</th><th>Viewer</th><th>Client</th></tr></thead><tbody id="roleBody"></tbody></table>
+            <div class="note green" style="margin-top:16px"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M20 6 9 17l-5-5"/></svg><div>This Management Dashboard runs at <b>Admin</b> level. The separate <b>Client Portal</b> file enforces the view-only column — no edit, upload, delete, add or internal analytics.</div></div>
+          </div></div>
+        </div>
+        <div id="t-schema" style="display:none">
+          <div class="grid-2">
+            <div class="panel" style="margin:0"><div class="panel-h"><h3>Centre record</h3><button class="btn sm" onclick="copySchema('centre')">Copy</button></div><div class="panel-b"><div class="code-box" id="schemaCentre"></div></div></div>
+            <div class="panel" style="margin:0"><div class="panel-h"><h3>Pincode record</h3><button class="btn sm" onclick="copySchema('pin')">Copy</button></div><div class="panel-b"><div class="code-box" id="schemaPin"></div></div></div>
+          </div>
+        </div>
+        <div id="t-api" style="display:none">
+          <div class="grid-2"><div class="panel" style="margin:0"><div class="panel-h"><h3>Integration roadmap</h3></div><div class="panel-b" id="apiList"></div></div>
+          <div class="panel" style="margin:0"><div class="panel-h"><h3>Suggested REST endpoints</h3></div><div class="panel-b"><div class="code-box">GET  /api/v1/centres
+GET  /api/v1/centres/:id
+GET  /api/v1/centres?service=tmt
+GET  /api/v1/centres?service=online_consult
+GET  /api/v1/serviceability?pin=110001   (home collection)
+GET  /api/v1/pincodes?state=Haryana
+POST /api/v1/centres          (admin)
+PUT  /api/v1/centres/:id      (admin/manager)
+DELETE /api/v1/centres/:id    (admin)
+
+Auth: Bearer JWT   ·   Roles: admin|manager|viewer|client
+Multi-tenant header: X-Tenant-Id
+Realtime: webhook centre.updated → refresh clients</div></div></div></div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<!-- EDITOR MODAL -->
+<div class="modal-bg" id="editorBg"><div class="modal"><div class="modal-h"><h3 id="editorTitle">Add centre</h3><div class="x" onclick="closeEditor()">✕</div></div>
+  <div class="modal-b">
+    <div class="grid-2" style="gap:14px">
+      <div class="fld"><label>Centre name</label><input id="e-name"></div>
+      <div class="fld"><label>City</label><input id="e-city"></div>
+    </div>
+    <div class="fld"><label>Address</label><input id="e-address"></div>
+    <div class="grid-3" style="gap:14px">
+      <div class="fld"><label>Pincode</label><input id="e-pincode"></div>
+      <div class="fld"><label>Accreditation</label><select id="e-status"><option>NABL Accredited</option><option>ISO Certified</option><option>ISO, NABL(In-Process)</option><option>NABL</option><option>ISO</option></select></div>
+      <div class="fld"><label>Contact</label><input id="e-contact"></div>
+    </div>
+    <div style="margin:6px 0 4px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--slate)">Services &amp; outsource charges</div>
+    <div id="editorServices" style="display:grid;grid-template-columns:1fr 1fr;gap:10px 14px"></div>
+    <div class="grid-2" style="gap:14px;margin-top:14px">
+      <div class="fld"><label>SPOC</label><input id="e-spoc"></div>
+      <div class="fld"><label>Email</label><input id="e-email"></div>
+    </div>
+    <div class="grid-2" style="gap:14px">
+      <div class="fld"><label>Google location URL</label><input id="e-location"></div>
+      <div></div>
+    </div>
+    <div class="btn-row" style="justify-content:flex-end;margin-top:8px"><button class="btn ghost" onclick="closeEditor()">Cancel</button><button class="btn primary" onclick="saveCentre()">Save centre</button></div>
+  </div>
+</div></div>
+
+<!-- SERVICE MASTER EDITOR MODAL -->
+<div class="modal-bg" id="svcEditorBg"><div class="modal" style="max-width:480px"><div class="modal-h"><h3 id="svcEditorTitle">Add service</h3><div class="x" onclick="closeSvcEditor()">✕</div></div>
+  <div class="modal-b">
+    <div class="fld"><label>Service name</label><input id="s-name" placeholder="e.g. MRI"></div>
+    <div class="grid-2" style="gap:14px">
+      <div class="fld"><label>Category</label><input id="s-category" placeholder="e.g. Radiology"></div>
+      <div class="fld"><label>Status</label><select id="s-enabled"><option value="1">Enabled</option><option value="0">Disabled</option></select></div>
+    </div>
+    <div class="grid-2" style="gap:14px">
+      <div class="fld"><label>Outsourced billing?</label><select id="s-outsource" onchange="document.getElementById('s-cost-wrap').style.display=this.value==='1'?'block':'none'"><option value="0">No (in-house)</option><option value="1">Yes — bill before report</option></select></div>
+      <div class="fld" id="s-cost-wrap" style="display:none"><label>Default charge (Rs)</label><input type="number" id="s-cost" value="0" min="0"></div>
+    </div>
+    <div class="note" style="margin-top:4px"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><div id="s-editor-note">New services start as “Not available” at every centre — set availability per centre in the centre editor.</div></div>
+    <div class="btn-row" style="justify-content:flex-end;margin-top:10px"><button class="btn ghost" onclick="closeSvcEditor()">Cancel</button><button class="btn primary" onclick="saveService()">Save service</button></div>
+  </div>
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+/* ============ SHARED MASTER DB ============ */
+const MASTER = {"services": [{"id": "tmt", "name": "TMT (Treadmill)", "category": "Cardiac", "group": "g7", "outsource": false, "cost": 0}, {"id": "ecg", "name": "ECG", "category": "Cardiac", "group": "g7", "outsource": false, "cost": 0}, {"id": "xray", "name": "X-Ray", "category": "Radiology", "group": "g7", "outsource": false, "cost": 0}, {"id": "pft", "name": "PFT", "category": "Pulmonary", "group": "g7", "outsource": false, "cost": 0}, {"id": "audiometry", "name": "Audiometry", "category": "ENT", "group": "g7", "outsource": false, "cost": 0}, {"id": "ultrasound", "name": "Ultrasound", "category": "Radiology", "group": null, "outsource": true, "cost": 1000}, {"id": "echo", "name": "2D Echo", "category": "Cardiac", "group": null, "outsource": true, "cost": 2500}, {"id": "sonomammography", "name": "Sonomammography", "category": "Radiology", "group": null, "outsource": true, "cost": 2500}, {"id": "bmd", "name": "BMD (Bone Mineral Density)", "category": "Radiology", "group": null, "outsource": false, "cost": 0}, {"id": "vaccination", "name": "Vaccination", "category": "Preventive", "group": null, "outsource": false, "cost": 0}, {"id": "online_consult", "name": "Online Consultation", "category": "Consultation", "group": null, "outsource": false, "cost": 0}, {"id": "after_report", "name": "After-Report Consultation", "category": "Consultation", "group": null, "outsource": false, "cost": 0}], "centres": [{"sno": 1, "name": "AMINO DIAGNOSTICS PRIVATE LIMITED", "city": "Delhi", "address": "ED-17A, PITAMPURA NORTH WEST DELHI", "pincode": "110034", "status": "NABL Accredited", "nabl": true, "iso": false, "tmt": "IN", "ecg": "IN", "xray": "IN", "pft": "IN", "audiometry": "IN", "papsmear": "IN", "ultrasound": "IN", "echo": "IN", "sonomammography": "IN", "bmd": "IN", "vaccination": "IN", "online_consult": "IN", "after_report": "IN", "consultation": "IN", "cost_ultrasound": 0, "cost_echo": 0, "cost_sonomammography": 0, "g_raw": "INHOUSE", "h_raw": "INHOUSE", "location": "https://maps.app.goo.gl/gG5JB8SD47BEhsvN6", "spoc": "MR MAHESH CHAND", "contact": "7982394329", "email": "info@aminodiagnostics.com", "lat": 28.6139, "lng": 77.209}, {"sno": 2, "name": "RED DIAGNOSTICS", "city": "Noida", "address": "D-82A, GROUND FLOOR, MAHARAJA AGRASEN MARG, D-BLOCK, SECTOR-26, NOIDA, UTTAR PRADESH", "pincode": "201301", "status": "ISO  Certified", "nabl": false, "iso": true, "tmt": "IN", "ecg": "IN", "xray": "IN", "pft": "IN", "audiometry": "IN", "papsmear": "IN", "ultrasound": "IN", "echo": "IN", "sonomammography": "IN", "bmd": "NA", "vaccination": "IN", "online_consult": "IN", "after_report": "IN", "consultation": "IN", "cost_ultrasound": 0, "cost_echo": 0, "cost_sonomammography": 0, "g_raw": "INHOUSE", "h_raw": "INHOUSE (11:00 TO 2 PM)", "location": "https://maps.app.goo.gl/USpVfyLGiHWaLZ1Q6", "spoc": "JYOTI OLIYA", "contact": "9311577762", "email": "rgdiagnosticsnoida@gmail.com", "lat": 28.5355, "lng": 77.391}, {"sno": 3, "name": "XENON MED SERVICES", "city": "Lucknow", "address": "Shop No. 4 krishna Complex Baldi Kheda kanpur Road Near Krishna Nagar Metro station Lucknow", "pincode": "226012", "status": "ISO, NABL(In-Process)", "nabl": true, "iso": true, "tmt": "IN", "ecg": "IN", "xray": "IN", "pft": "IN", "audiometry": "IN", "papsmear": "IN", "ultrasound": "OUT", "echo": "OUT", "sonomammography": "OUT", "bmd": "NA", "vaccination": "IN", "online_consult": "IN", "after_report": "IN", "consultation": "IN", "cost_ultrasound": 1000, "cost_echo": 2500, "cost_sonomammography": 2500, "g_raw": "INHOUSE", "h_raw": "OUT SOURCED", "location": "https://maps.app.goo.gl/ZkNV1tdDP4wgSrkp6", "spoc": "PRIYANKA", "contact": "9818777610", "email": "xenonpims@gmail.com", "lat": 26.8467, "lng": 80.9462}, {"sno": 4, "name": "GENTLE CORPORATE CARE", "city": "Delhi", "address": "65, RAM VIHAR, UPPER GROUND FLOOR, REAR PORTION DELHI", "pincode": "110092", "status": "ISO  Certified", "nabl": false, "iso": true, "tmt": "IN", "ecg": "IN", "xray": "IN", "pft": "IN", "audiometry": "IN", "papsmear": "IN", "ultrasound": "IN", "echo": "IN", "sonomammography": "IN", "bmd": "NA", "vaccination": "IN", "online_consult": "IN", "after_report": "IN", "consultation": "IN", "cost_ultrasound": 1000, "cost_echo": 2500, "cost_sonomammography": 2500, "g_raw": "INHOUSE", "h_raw": "INHOUSE", "location": "https://maps.app.goo.gl/taqLv9duqauXM1Tv5", "spoc": "SAMAKSH CHAUHAN", "contact": "9311915435", "email": "gentlecorporatecare@gmail.com", "lat": 28.6814, "lng": 77.2756}, {"sno": 5, "name": "SOWAKA CORPORATE CARE", "city": "Greater Noida", "address": "G-1, opposite wheelmart, Sector Pi-1, Ekanki Enclave, Block G, Pi I & II, Greater Noida, Uttar Pradesh", "pincode": "201308", "status": "ISO  Certified", "nabl": false, "iso": true, "tmt": "IN", "ecg": "IN", "xray": "IN", "pft": "IN", "audiometry": "IN", "papsmear": "IN", "ultrasound": "IN", "echo": "IN", "sonomammography": "IN", "bmd": "NA", "vaccination": "IN", "online_consult": "IN", "after_report": "IN", "consultation": "IN", "cost_ultrasound": 1000, "cost_echo": 2500, "cost_sonomammography": 2500, "g_raw": "INHOUSE", "h_raw": "INHOUSE", "location": "https://maps.app.goo.gl/ZfiWEFqaiicADoZ48", "spoc": "HIMANSHU", "contact": "7835819665", "email": "sowakacorporatecare@gmail.com", "lat": 28.4744, "lng": 77.504}], "pincodes": [{"pin": "110001", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Baroda House, Bengali Market, Bhagat Singh market, Connaught Place, Constitution House, Election Commission, Janpath, Krishi Bhawan, Lady Harding medical college, North Avenue, Parliament House, Patiala House, Pragati Maidan, Rail Bhawan, Sansad Marg, Sansadiya Soudh, Secretariat North, Shastri Bhawan, Supreme Court", "lat": 28.6139, "lng": 77.209}, {"pin": "110002", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "A.G.c.r., Ajmeri Gate extn., Darya Ganj, Gandhi Smarak nidhi, I.P.estate, Indraprastha, Minto Road, Rajghat Power house", "lat": 28.6139, "lng": 77.209}, {"pin": "110003", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Delhi High court, Pandara Road, Aliganj, C G o complex, Golf Links, Kasturba Nagar, Lodi Colony market, Lodi Road, Pragati Vihar, Safdarjung Air port", "lat": 28.6139, "lng": 77.209}, {"pin": "110004", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Rashtrapati Bhawan", "lat": 28.6139, "lng": 77.209}, {"pin": "110005", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Anand Parbat, Anand Parbat indl. area, Bank Street, Desh Bandhu gupta road, Guru Gobind singh marg, Karol Bagh, Master Prithvi nath marg, Sat Nagar", "lat": 28.6139, "lng": 77.209}, {"pin": "110006", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Hauz Qazi, Jama Masjid, Baratooti, Chandni Chowk, Chawri Bazar, Dareeba, Delhi Sadar bazar, S.T. road", "lat": 28.6139, "lng": 77.209}, {"pin": "110007", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Birla Lines, C.C.i., Delhi University, Gulabi Bagh, Jawahar Nagar, Kamla Nagar, Malka Ganj, Padam Nagar, R.C.a.o., Rana Pratap bagh, Roop Nagar, Roshan Ara road, Shakti Nagar", "lat": 28.6139, "lng": 77.209}, {"pin": "110008", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Dada Ghosh bhawan, Patel Nagar, Patel Nagar east, Patel Nagar south, Patel Nagar west", "lat": 28.6139, "lng": 77.209}, {"pin": "110011", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Gym Khana club, Nirman Bhawan, South Avenue, Udyog Bhawan", "lat": 28.6139, "lng": 77.209}, {"pin": "110012", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "I.A.r.i., Inderpuri, National Physical laboratory", "lat": 28.6139, "lng": 77.209}, {"pin": "110013", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Dargah Sharif, Hazrat Nizamuddin", "lat": 28.6139, "lng": 77.209}, {"pin": "110014", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Hari Nagar ashram, Jeevan Nagar, Jungpura, Pratap Market", "lat": 28.6139, "lng": 77.209}, {"pin": "110015", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Bakkarwala, Chaukhandi, Delhi Industrial area, Esi, Hastal Village, Hirankudna, Jwalaheri, Karam Pura, L. m. nagar indl. area, Mansarover Garden, N.I.area, Nangloi - ii, Nilothi, Peeragarhi, Ramesh Nagar, Ranhola, Tikri Kalan, Zakhira", "lat": 28.6139, "lng": 77.209}, {"pin": "110017", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Chirag Delhi, Mmtc/stc Colony, Malviya Nagar, Panchsheel Enclave, Pushp Vihar, Saket, Sarvodya Enclave, South Malviya nagar", "lat": 28.6139, "lng": 77.209}, {"pin": "110018", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Ashok Nagar, Chand Nagar, Fateh Nagar, Khyala Phase - i, Khyala Phase - ii, M.B.s. nagar, Mahabir Nagar, Tilak Nagar, Tilak Nagar east, Vikas Puri, Vishnu Garden", "lat": 28.6139, "lng": 77.209}, {"pin": "110019", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Alaknanda, Ali, Chittranjan Park, Govindpuri, Kalkaji, Lal Kuan, Nehru Place, Tehkhand, Tugalkabad", "lat": 28.6139, "lng": 77.209}, {"pin": "110020", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "C R r i, Okhla Industrial area phase-i, Okhla Industrial estate", "lat": 28.6139, "lng": 77.209}, {"pin": "110024", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Amar Colony, Defence Colony, Krishna Market, Lajpat Nagar", "lat": 28.6139, "lng": 77.209}, {"pin": "110025", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Abul Fazal enclave-i, Jamia Nagar, New Friends colony, Sukhdev Vihar, Zakir Nagar", "lat": 28.6139, "lng": 77.209}, {"pin": "110026", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Ashoka Park extn., Punjabi Bagh, Punjabi Bagh sec - iii, Shivaji Park", "lat": 28.6139, "lng": 77.209}, {"pin": "110027", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "J-6 Rajouri garden, Janta Market, Rajouri Garden, Rajouri Market, Subhash Nagar, Subhash Nagar west", "lat": 28.6139, "lng": 77.209}, {"pin": "110031", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Gandhi Nagar, Gandhi Nagar bazar, Geeta Colony, Kailash Nagar, Raghubar Pura, Rajgarh Colony, Shastri Nagar", "lat": 28.6139, "lng": 77.209}, {"pin": "110032", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Babarpur, Balbir Nagar, Bhola Nath nagar, Distt. court (kkd), Goverdhan Bihari colony, Loni Road, Man Sarovar park, Rohtash Nagar, Shahdara, Shahdara Mandi, Shivaji Park, Telewara, Vishwas Nagar", "lat": 28.6139, "lng": 77.209}, {"pin": "110041", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Mundka, Nangloi, Nangloi - iii", "lat": 28.6139, "lng": 77.209}, {"pin": "110044", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Btps, Badarpur, Jaitpur, Molarband, Pul Pahladpur, Tugalkabad Railway colony", "lat": 28.6139, "lng": 77.209}, {"pin": "110048", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Greater Kailash, Greater Kailash part ii, Kailash Colony, Masjid Moth", "lat": 28.6139, "lng": 77.209}, {"pin": "110049", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Andrewsganj, Gautam Nagar, Gulmohar Park, New Delhi south ext-ii, Sadiq Nagar, Sahpurjat", "lat": 28.6139, "lng": 77.209}, {"pin": "110051", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Azad Nagar, Govind Pura, Krishna Nagar, Ram Nagar", "lat": 28.6139, "lng": 77.209}, {"pin": "110053", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Bhajan Pura, Brahampuri, Ghonda, Jafrabad, Jagjit Nagar, Maujpur, New Usmanpur, Seelampur, Yamuna Vihar", "lat": 28.6139, "lng": 77.209}, {"pin": "110054", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Civil Lines, Distt Courts, Patrachar Vidyalay, Timarpur", "lat": 28.6139, "lng": 77.209}, {"pin": "110055", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "A.K.market, Multani Dhanda, Pahar Ganj, Swami Ram tirth nagar", "lat": 28.6139, "lng": 77.209}, {"pin": "110058", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "A-3 Janak puri, B-1 Janak puri, D.E.s.u. colony, Jail Road, Janakpuri", "lat": 28.6139, "lng": 77.209}, {"pin": "110059", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "D. k. mohan garden, Jeevan Park, Matiala, Uttam Nagar", "lat": 28.6139, "lng": 77.209}, {"pin": "110060", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Rajender Nagar", "lat": 28.6139, "lng": 77.209}, {"pin": "110062", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Air Force station tugalkabad, Bsf Camp tigri, Dakshinpuri Phase-i, Dakshinpuri Phase-ii, Dakshinpuri Phase-iii, Deoli, Dr. ambedkar nagar, Hamdard Nagar, Khanpur, Pushpa Bhawan, Talimabad", "lat": 28.6139, "lng": 77.209}, {"pin": "110063", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Jawala Heri, Madipur Slum quarter, Madipur Village, Paschim Vihar, Paschim Vihar b block", "lat": 28.6139, "lng": 77.209}, {"pin": "110064", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Hari Nagar, Hari Nagar be block, Hari Nagar dadb block", "lat": 28.6139, "lng": 77.209}, {"pin": "110065", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "East Of kailash, East Of kailash phase-i, Nehru Nagar, Sant Nagar, Sriniwaspuri", "lat": 28.6139, "lng": 77.209}, {"pin": "110069", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Union Public service commissio", "lat": 28.6139, "lng": 77.209}, {"pin": "110076", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Madanpur Khadar, Sarita Vihar", "lat": 28.6139, "lng": 77.209}, {"pin": "110084", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Burari, Jagatpur, Jharoda Majraa", "lat": 28.6139, "lng": 77.209}, {"pin": "110087", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Jwala Puri, Sunder Vihar", "lat": 28.6139, "lng": 77.209}, {"pin": "110091", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Chilla, Himmatpuri, Kalyanpuri, Kalyanvas, Mayur Vihar ph-i, Patparganj, Trilok Puri", "lat": 28.6139, "lng": 77.209}, {"pin": "110092", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Anand Vihar, Laxmi Nagar, Mandawali Fazalpur, Nirman Vihar, Shakarpur, Surajmal Vihar, Yozna Vihar", "lat": 28.6139, "lng": 77.209}, {"pin": "110093", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Loni Road housing complex, Mandoli Saboli, Nand Nagri a, Nand Nagri c", "lat": 28.6139, "lng": 77.209}, {"pin": "110094", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Dayalpur, Gokal Puri, Johripur, Karawal Nagar, Khazuri Khas, Sabhapur, Sonia Vihar", "lat": 28.6139, "lng": 77.209}, {"pin": "110095", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Dilshad Garden, G.T.b. hospital, Jhilmil, Jhilmil Tahirpur, New Seemapuri, Old Seemapuri, V.K. nagar, Vivek Vihar", "lat": 28.6139, "lng": 77.209}, {"pin": "110096", "city": "Delhi", "state": "Delhi", "free": true, "charge": 0, "localities": "Ghazipur, Mayur Vihar ph-iii, Vasundhra Enclave", "lat": 28.6139, "lng": 77.209}, {"pin": "202389", "city": "Bulandshahr", "state": "Uttar Pradesh", "free": false, "charge": 1000, "localities": "Belon, Napp, Narora, Rampur, Vijay nagliya", "lat": 28.4069, "lng": 77.8498}, {"pin": "202390", "city": "Bulandshahr", "state": "Uttar Pradesh", "free": false, "charge": 1000, "localities": "Anupshahr, Bagsara, Bhargava Pharmacy, Bibayana, Birouly, Jirouly, Malakpur, Mandi anupshahr, Parly, Roop wash, Sirora banger, Surajpur makhena", "lat": 28.4069, "lng": 77.8498}, {"pin": "202391", "city": "Bulandshahr", "state": "Uttar Pradesh", "free": false, "charge": 1000, "localities": "Andhiyar, Bhaipur, Katiyawaly, Khailiya kalyanpur, Ksc Mill anupshahr, Rewara", "lat": 28.4069, "lng": 77.8498}, {"pin": "202392", "city": "Bulandshahr", "state": "Uttar Pradesh", "free": false, "charge": 1000, "localities": "Bhikampur, Chehla, Choundhera, Dangarh, Danpur, Daoulatpurkalan, Donka, Indoure khera, Keeratpur, Khakhunda, Muradpur, Poothery kalan, Runsi, Satwara, Shekhpur", "lat": 28.4069, "lng": 77.8498}, {"pin": "202393", "city": "Bulandshahr", "state": "Uttar Pradesh", "free": false, "charge": 1000, "localities": "Asadpur Gher, Daurau, Debai, Debai bazar, Dharmpur, Dogawan, Karanbash, Kaser kalan, Kaser khurd, Kharikbari, Khushalabad, Pilkhana, Rahim kot, Raj Ghat, Satoha, Talwar, Uamrara", "lat": 28.4069, "lng": 77.8498}, {"pin": "202394", "city": "Bulandshahr", "state": "Uttar Pradesh", "free": false, "charge": 1000, "localities": "Bansuri, Chandauk, Charora, Darora, Dhalana, Guraoli, Jahangirabad, Jahangirabad Mandi, Jakheta, Jaleel Pur, Jatpura, Kakrai, Khalor, Khanoda, Navi Nagar, Sakhani, Tauli, Titota Veer", "lat": 28.4069, "lng": 77.8498}, {"pin": "202395", "city": "Bulandshahr", "state": "Uttar Pradesh", "free": false, "charge": 500, "localities": "Anchrookalan, Bohich, Daduwa Mutafabad, Kailawan, Sarawa, Shikarpur, Utrawaly", "lat": 28.4069, "lng": 77.8498}, {"pin": "202396", "city": "Bulandshahr", "state": "Uttar Pradesh", "free": false, "charge": 1000, "localities": "Dighi, Fazalpur, Ganga garh, Kunwarpur, Lalner, Pahasu, Soi", "lat": 28.4069, "lng": 77.8498}, {"pin": "202397", "city": "Bulandshahr", "state": "Uttar Pradesh", "free": false, "charge": 500, "localities": "Behlolpur, Biroura, Chhatary, Kamona, Narau, Pindrawal, Sahar, Tyore buzurg", "lat": 28.4069, "lng": 77.8498}, {"pin": "202398", "city": "Bulandshahr", "state": "Uttar Pradesh", "free": false, "charge": 1000, "localities": "Ahar, Amargarh, Auranga Bad taherpur, Barhpura, Darawer, Doulatpur kala, Ghungharwaly, Khandoi, Mauwa khera, Mawai, Mohersha, Narsena, Shikoi, Thana gajraula, Uncha Gaon", "lat": 28.4069, "lng": 77.8498}, {"pin": "203001", "city": "Bulandshahr", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Agouta, Akabarpur, Aulina, Bhatauna, Bhoor, Bulandshahr, Bulandshahr kutchery, Bulandshahr Tehsil, Chanderu, Chitson, Dariyapur, Dav college bulandshahr, Deputy ganj bulandshahr, Dhamera keerat, Dhatori, Ghunghraoli Banwaripur, Guthaoli, Hattmabad, Ipdc bulandshahr, Jauly Garh, Kahira, Krishananagar, Kuchesar, Lalkuan, Luharaly Ludhiyana, Malagarh, Mirjapur, Mukeempur, Naya gaon, Panni nagar, Rangpur, Salempur, Sarai Ghashi", "lat": 28.4069, "lng": 77.8498}, {"pin": "203002", "city": "Bulandshahr", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Ag school, Dhamraoli, Jhal Khera, Naithala hasanpur, Shikhera", "lat": 28.4069, "lng": 77.8498}, {"pin": "203129", "city": "Bulandshahr", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Aterna, Badshahpur pachgain, Devrala, Farkana gangagarhi, Gangawaly, Gwarauly, Karora, Nagliya udaibhan, Raipur Palda, Rampur manpur, Sabitgarh", "lat": 28.4069, "lng": 77.8498}, {"pin": "203132", "city": "Bulandshahr", "state": "Uttar Pradesh", "free": false, "charge": 500, "localities": "Asgarpur, Bhadaura Kamalpur, Dabar, Khurja jn rs, Samashpur, Sarangpur, Sonda habibpur", "lat": 28.4069, "lng": 77.8498}, {"pin": "203150", "city": "Bulandshahr", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Ajnara, Ashwari, Bhudhana, Jugsana kalan, Manglore, Pondhery, Raura, Rehamapur Siyawali, Ronda, Shahkarinagar, Shiwaly", "lat": 28.4069, "lng": 77.8498}, {"pin": "203205", "city": "Bulandshahr", "state": "Uttar Pradesh", "free": false, "charge": 500, "localities": "Aurangabad Aheer, Bharana, Bilsoory, Gajipur, Geshupur, Industrial Estate sikandrabad, Ishmail Pur, Kanwra, Kayasthwara sikandrabad, Mahepa, Prangarh, Sanota, Sikandrabad, Til Begum pur", "lat": 28.4069, "lng": 77.8498}, {"pin": "245401", "city": "Bulandshahr", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Aurangabad, Paswasara, Visundhara", "lat": 28.4069, "lng": 77.8498}, {"pin": "245402", "city": "Bulandshahr", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Banhpur, Bb nagar, Benipur, Bihta, Chitsona Ali pur, Hingwara, Lad Pur, Madona Jafara bad, Sathala", "lat": 28.4069, "lng": 77.8498}, {"pin": "245403", "city": "Bulandshahr", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Barhana, Bharkau, Bugrasi, Buklana, Chandiyana, Dhaniya Wali, Gesupur Barwala, Hazipur, Jalalpur, Kisola, Mankari", "lat": 28.4069, "lng": 77.8498}, {"pin": "245405", "city": "Bulandshahr", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Amarpur, Chithera, Ginoura nagly, Giroura, Kamalpur, Kanauna, Khanpur, Pali partapur, Raghunathpur, Sonjhana jhaya", "lat": 28.4069, "lng": 77.8498}, {"pin": "245407", "city": "Bulandshahr", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Bihra, Lakhaoti, Mundi bakapur, Nimchana, Parwana, Sega jagatpur, Shekhpur gadwa", "lat": 28.4069, "lng": 77.8498}, {"pin": "245408", "city": "Bulandshahr", "state": "Uttar Pradesh", "free": false, "charge": 500, "localities": "Asawar, Asfabad Chandpura, Baghwala, Banboai, Baral, Chaprawat, Garhiya Manpur, Ginora Shekh, Gulaothi, Harchana, Isapur, Khushhalpur, Kisoli, Kota, Kurli, Mohana, Obs Gulaothi, Oledha, Pitubash, Senta", "lat": 28.4069, "lng": 77.8498}, {"pin": "245409", "city": "Bulandshahr", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Balka, Birouli, Jadoul, Maithna jagatpur, Sarai chhabila, Utrouly", "lat": 28.4069, "lng": 77.8498}, {"pin": "245411", "city": "Bulandshahr", "state": "Uttar Pradesh", "free": false, "charge": 1000, "localities": "Ahemedanagar, Akapur tiyana, Barkatpur, Bhainshakhur, Bhanshrouli, Nishurkha, Partapur, Saidpur, Shera, Sihi, Tajpur", "lat": 28.4069, "lng": 77.8498}, {"pin": "245412", "city": "Bulandshahr", "state": "Uttar Pradesh", "free": false, "charge": 1000, "localities": "Baddha bazidpur, Barouli Basdev pur, Bhainsaura, Bigraou, Khad mohan nagar, Mahav, Siyana, Waira firozpur", "lat": 28.4069, "lng": 77.8498}, {"pin": "202399", "city": "Bulandshahr, Gautam Buddha Nagar", "state": "Uttar Pradesh", "free": false, "charge": 500, "localities": "Dharakpur, Jargawan, Ramghat, Chiroury", "lat": 28.6, "lng": 77.2}, {"pin": "203131", "city": "Bulandshahr, Gautam Buddha Nagar", "state": "Uttar Pradesh", "free": false, "charge": 500, "localities": "Agaura hameerpur, Ahmadgarh, Arniya, Bada Gaon, Bagrai khurd, Banail, Bhatwara, Bichoula, Dashhera kherli, Dharpa Chuhar pur, Dinoul, Gt Road khurja, Jarara, Jawal, Kalena, Kehroula, Khurja, Khurja chowk, Kirra, Meerpur, Munda khera, Muni, Nagla Mahiuddinpur, Raniaoli, Roop wash pachgain, Seekri, Senda faridpur, Shahbaz Pur, Subhash road khurja, Surjawaly, Bilaspur", "lat": 28.6, "lng": 77.2}, {"pin": "203201", "city": "Bulandshahr, Gautam Buddha Nagar", "state": "Uttar Pradesh", "free": false, "charge": 500, "localities": "Dankaur, Dhanouri kalan, Mirzapur Niloni, Nawada, Parsol", "lat": 28.6, "lng": 77.2}, {"pin": "203202", "city": "Bulandshahr, Gautam Buddha Nagar", "state": "Uttar Pradesh", "free": false, "charge": 500, "localities": "Gurukul sikandrabad, Astauly, Baroda, Chiti, Deota, Rashol rithaury, Salempur gujar, Wair", "lat": 28.6, "lng": 77.2}, {"pin": "203203", "city": "Bulandshahr, Gautam Buddha Nagar", "state": "Uttar Pradesh", "free": false, "charge": 500, "localities": "Dhanoura, Kakore, Banchawaly, Bichat sujanpur, Biroundi Tajpur, Chol R.s., Jhajhar, Khabra khanpur, Mahamdpur jadon, Salempur jat, Sunpera, Wailana", "lat": 28.6, "lng": 77.2}, {"pin": "201008", "city": "Gautam Buddha Nagar", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Bisara, Piyaoli, Salarpur Kalan, Vidyut Nagar", "lat": 28.5355, "lng": 77.391}, {"pin": "201304", "city": "Gautam Buddha Nagar", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Baraula, Gejha, Maharishi Nagar, Parthala Khanjarpur, Sarfabad", "lat": 28.5355, "lng": 77.391}, {"pin": "201305", "city": "Gautam Buddha Nagar", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Chhaprauli Bengar, Nagla Charandas, Nepz Post office", "lat": 28.5355, "lng": 77.391}, {"pin": "201306", "city": "Gautam Buddha Nagar", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Ghori, I.A. surajpur, Kasna, Kulesra, Sakipur, Tilapta Karanwas", "lat": 28.5355, "lng": 77.391}, {"pin": "201307", "city": "Gautam Buddha Nagar", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Chhajarsi, Khora Gaon, Sec-34 Noida, Sec-55 Noida", "lat": 28.5355, "lng": 77.391}, {"pin": "201308", "city": "Gautam Buddha Nagar", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Alpha Greater noida, Tugalpur", "lat": 28.5355, "lng": 77.391}, {"pin": "201309", "city": "Gautam Buddha Nagar", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Sec-62 Noida", "lat": 28.5355, "lng": 77.391}, {"pin": "203135", "city": "Gautam Buddha Nagar", "state": "Uttar Pradesh", "free": false, "charge": 1000, "localities": "Dayanatpur, Faleda, Jewar, Kanigarhi, Kureb, Mangrouly, Sabouta jafrabad", "lat": 28.5355, "lng": 77.391}, {"pin": "203141", "city": "Gautam Buddha Nagar", "state": "Uttar Pradesh", "free": false, "charge": 1000, "localities": "Bhaipur, Bhunna jattan, Chhapana, Chingrawly, Firoujpur, Gotheny, Jahangirpur, Jawan, Lodana, Mansoor Pur hasanpur, Narmohamadpur, Ram garhi, Shahpur kala", "lat": 28.5355, "lng": 77.391}, {"pin": "203155", "city": "Gautam Buddha Nagar", "state": "Uttar Pradesh", "free": false, "charge": 500, "localities": "Ahamedpur chauroli, Bankapur, Chanchaly, Kishore Pur, Manchad, Neemka, Ranhera, Thora", "lat": 28.5355, "lng": 77.391}, {"pin": "203207", "city": "Gautam Buddha Nagar", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Achheja, Bambawar, Behhrampur, Chainsa, Chholas, Chithera, Dadri, Dujana, Jarcha, Kachera Versabad, Kalaunda, Khandara, Khatana, Kheri Bhanauta, Kot, Luharli, Pali, Sainthli, Vedpura", "lat": 28.5355, "lng": 77.391}, {"pin": "203208", "city": "Gautam Buddha Nagar", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Dhoomedso", "lat": 28.5355, "lng": 77.391}, {"pin": "203209", "city": "Gautam Buddha Nagar", "state": "Uttar Pradesh", "free": false, "charge": 500, "localities": "Bhaipur brahmanan, Karauli Banger, Rabupura, Ronija, Tirthaly", "lat": 28.5355, "lng": 77.391}, {"pin": "201001", "city": "Ghaziabad", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Ashok Nagar, B.B.nagar, Chaupla, Dasna, Dasna Gate ed, Delhi Road, Farrukh Nagar, Ghaziabad, Nasratpura, Nehru Nagar, Ramte Ram road", "lat": 28.6692, "lng": 77.4538}, {"pin": "201002", "city": "Ghaziabad", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Alttc, Ingram Institute, Kamla Nehru nagar, Kavi Nagar, New Raj nagar, Old Raj nagar, Police Line harsaon, Postal Staff college (i), Raispur, Rajapur, Sadarpur, Shahpur Bamheta", "lat": 28.6692, "lng": 77.4538}, {"pin": "201003", "city": "Ghaziabad", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Ator Nagla, Aurangabad Ristal, Bhup Kheri, Meerut Road, Morta, Nistoli", "lat": 28.6692, "lng": 77.4538}, {"pin": "201004", "city": "Ghaziabad", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Hindon Air field", "lat": 28.6692, "lng": 77.4538}, {"pin": "201005", "city": "Ghaziabad", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Pasonda, Sahibabad, Shalimar Bagh", "lat": 28.6692, "lng": 77.4538}, {"pin": "201006", "city": "Ghaziabad", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Chikamberpur", "lat": 28.6692, "lng": 77.4538}, {"pin": "201007", "city": "Ghaziabad", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Mohan Nagar", "lat": 28.6692, "lng": 77.4538}, {"pin": "201009", "city": "Ghaziabad", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Arya Nagar, Chhaprola, Chhipyana, Dundahara, Ghaziabad City, Kaila, Model Town, Roza Yakubpur, Vijai Nagar", "lat": 28.6692, "lng": 77.4538}, {"pin": "201010", "city": "Ghaziabad", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Bharat Nagar, I.E.sahibabad, Kaushambi", "lat": 28.6692, "lng": 77.4538}, {"pin": "201011", "city": "Ghaziabad", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Chander Nagar, Surya Nagar", "lat": 28.6692, "lng": 77.4538}, {"pin": "201012", "city": "Ghaziabad", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Hasanpur Bhowapur, Makanpur, Vasundhra", "lat": 28.6692, "lng": 77.4538}, {"pin": "201013", "city": "Ghaziabad", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Govindpuram", "lat": 28.6692, "lng": 77.4538}, {"pin": "201102", "city": "Ghaziabad", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Badshahnpur Siroli, Behta Hazipur, Chrori, Jaoli, Loni, Mandola, Teela Sahbazpur", "lat": 28.6692, "lng": 77.4538}, {"pin": "201201", "city": "Ghaziabad", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Churiyala, Govindpuri, Harmukhpuri, Rori, Saidpur, Sara, Talhata", "lat": 28.6692, "lng": 77.4538}, {"pin": "201204", "city": "Ghaziabad", "state": "Uttar Pradesh", "free": false, "charge": 500, "localities": "Begmabad, Gyaspur, Khanjarpur, Khindora, Mahendrapuri, Modi Nagar, Modipon, Nagla Akhu, Niwari, Painga, Patla, Saunda, Shahjahanpur, Sikri Kalan, Sikri Khurd, Tibra", "lat": 28.6692, "lng": 77.4538}, {"pin": "201206", "city": "Ghaziabad", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Abupur, Basantpur Sainthli, Bhadoli, Bhikanpur, Didoli, Dosa Bangerpur, Duhai, Jalalabad, Jalalpur Dhindar, Kakra, Kanauja, Khimawati, Kumhera, Murad Nagar, Murad Nagar bazar, Murad Nagar town, Nekpur, Noorpur, Raoli Kalan, Rewri Rewra, Shahpur, Sultanpur, Surana", "lat": 28.6692, "lng": 77.4538}, {"pin": "201302", "city": "Ghaziabad", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Adhyatmic Nagar, Dasna R.s., Galand, Hassanpur, Hindan Nagar, Jindal Nagar, Kushlia, Nahal, Udai Rampur nagla", "lat": 28.6692, "lng": 77.4538}, {"pin": "245101", "city": "Ghaziabad", "state": "Uttar Pradesh", "free": false, "charge": 1000, "localities": "Achheja, Asaura, Atola, Bajhera Kalan, Bhatiyana, Chamri, Chhajupur, Dadri, Dahana, Dhanaura, Ghungrala, Girdharpur Tmrel, Gohrs Alamgirpur, Gyan Lok, Hapur, Hapur Mandi, Harsinghpur, I.E.hapur, Iklahdi, Kathikhera, Kharkhari, Kishan Ganj, Madarsa Sadat, Mahmoodpur, Mathurawali, Nan, Phagota, Raghunathpur, Rampur Puth, Rly Road hapur, Sapnawat, Shah Mohiuddinpur", "lat": 28.6692, "lng": 77.4538}, {"pin": "245201", "city": "Ghaziabad", "state": "Uttar Pradesh", "free": false, "charge": 1000, "localities": "Alipur, Babugarh, Bachhlota, Bankhanda, Hosdarpur, Kanya Kalyanpur, Matnaurs, Nali Husainpur, Rasulpur, Sakhpur, Sikandarpur Kakori, Tatarpur, Upera", "lat": 28.6692, "lng": 77.4538}, {"pin": "245205", "city": "Ghaziabad", "state": "Uttar Pradesh", "free": false, "charge": 1000, "localities": "Alamnagar, Athsaini, Bagarpur, Bahadurgarh, Bhadsiyana, Bhaina Dholpur, Bihuni, Dehra Rampur, Dotai, Gandu Nagla, Garh Town, Garhmukteswar, Haidarpur, Jakhera Rahmatpur, Jharina, Khiluai, Luhari, Mahmoodpur Palwara, Muradpur Janupura, Nanpur, Nek Nanpur nanai, Sadullapur, Salarpur, Sharpur, Shyampur Jatt", "lat": 28.6692, "lng": 77.4538}, {"pin": "245207", "city": "Ghaziabad", "state": "Uttar Pradesh", "free": false, "charge": 1000, "localities": "Baxur, Bharna, Datiyana, Dhana, Mohd. pur khudaliya, Mubarikpur, Phuldehra, Rajethi, Sikhera, Simbhaoli, Wait", "lat": 28.6692, "lng": 77.4538}, {"pin": "245208", "city": "Ghaziabad", "state": "Uttar Pradesh", "free": false, "charge": 1000, "localities": "Biraj Ghat", "lat": 28.6692, "lng": 77.4538}, {"pin": "245301", "city": "Ghaziabad", "state": "Uttar Pradesh", "free": false, "charge": 500, "localities": "Dhara, Dhaulana, Kandaula, Parpa, Samana, Solana", "lat": 28.6692, "lng": 77.4538}, {"pin": "245304", "city": "Ghaziabad", "state": "Uttar Pradesh", "free": false, "charge": 500, "localities": "Anwarpur, Atrauli, Bajhera Khurd, Bhadauli, Bhojpur, Chajarsi, Dehpa Azampur, Doohri, Farid Nagar, Kalchina, Kastala, Khera, Mukeempur, Nagola, New Market pilkhauwa, Pilkhauwa Post office, Samaipur, Tyori", "lat": 28.6692, "lng": 77.4538}, {"pin": "201301", "city": "Ghaziabad, Gautam Buddha Nagar", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Sec-27 Noida, Bisrakh, Maicha, Noida, Sec-12 Noida, Sec-16 Noida, Sec-30 Noida", "lat": 28.6, "lng": 77.2}, {"pin": "201303", "city": "Ghaziabad, Gautam Buddha Nagar", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Sec-41 Noida, Sec-37 Noida, Sec-45 Noida", "lat": 28.6, "lng": 77.2}, {"pin": "226001", "city": "Lucknow", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Hazratganj, Lalbagh, Lucknow GPO, Jawahar Bhawan", "lat": 26.8467, "lng": 80.9462}, {"pin": "226002", "city": "Lucknow", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Cantonment, Dilkusha, Nilmatha, Chak Ganjaria", "lat": 26.8467, "lng": 80.9462}, {"pin": "226003", "city": "Lucknow", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Chowk, Raja Bazar, Medical College, Sadatganj, Amberganj", "lat": 26.8467, "lng": 80.9462}, {"pin": "226004", "city": "Lucknow", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Charbagh, Rajendra Nagar, Pandariba", "lat": 26.8467, "lng": 80.9462}, {"pin": "226005", "city": "Lucknow", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Alambagh, Pawanpuri, Adarsh Nagar", "lat": 26.8467, "lng": 80.9462}, {"pin": "226006", "city": "Lucknow", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Mahanagar, Sant Market", "lat": 26.8467, "lng": 80.9462}, {"pin": "226007", "city": "Lucknow", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "New Hyderabad, Nadwa, Butler Palace Area", "lat": 26.8467, "lng": 80.9462}, {"pin": "226008", "city": "Lucknow", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Amausi, Sarojini Nagar, Airport Area", "lat": 26.8467, "lng": 80.9462}, {"pin": "226010", "city": "Lucknow", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Gomti Nagar, Vibhuti Khand, Viram Khand, Ismailganj", "lat": 26.8467, "lng": 80.9462}, {"pin": "226012", "city": "Lucknow", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Ashiyana, LDA Colony", "lat": 26.8467, "lng": 80.9462}, {"pin": "226016", "city": "Lucknow", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Indira Nagar, Ghazipur, Munshipulia", "lat": 26.8467, "lng": 80.9462}, {"pin": "226017", "city": "Lucknow", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Rajajipuram, Alamnagar", "lat": 26.8467, "lng": 80.9462}, {"pin": "226018", "city": "Lucknow", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Aminabad, Ganeshganj, Molviganj", "lat": 26.8467, "lng": 80.9462}, {"pin": "226020", "city": "Lucknow", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Nirala Nagar, Jankipuram Extension, Sitapur Road Area", "lat": 26.8467, "lng": 80.9462}, {"pin": "226021", "city": "Lucknow", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Jankipuram", "lat": 26.8467, "lng": 80.9462}, {"pin": "226022", "city": "Lucknow", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Vikas Nagar", "lat": 26.8467, "lng": 80.9462}, {"pin": "226023", "city": "Lucknow", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Manas Nagar, PAC Area", "lat": 26.8467, "lng": 80.9462}, {"pin": "226024", "city": "Lucknow", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Aliganj, Chandganj, Aliganj Extension, Kapoorthala", "lat": 26.8467, "lng": 80.9462}, {"pin": "226025", "city": "Lucknow", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "South City, Telibagh", "lat": 26.8467, "lng": 80.9462}, {"pin": "226026", "city": "Lucknow", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Dubagga, Hardoi Road Area", "lat": 26.8467, "lng": 80.9462}, {"pin": "226028", "city": "Lucknow", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Gomti Nagar Extension, Shaheed Path Area", "lat": 26.8467, "lng": 80.9462}, {"pin": "227105", "city": "Lucknow", "state": "Uttar Pradesh", "free": true, "charge": 0, "localities": "Chinhat, Malhaur, Juggaur", "lat": 26.8467, "lng": 80.9462}], "escalation": [{"level": "Level I", "name": "Concern DC SPOC (Head)", "contact": "As per given list"}, {"level": "Level II", "name": "Himanshu Kumar", "contact": "7835819665"}, {"level": "Level III", "name": "Yunus Ji", "contact": "9810065271"}, {"level": "Level III", "name": "Mohammad Arfeen", "contact": "9818140044"}], "meta": {"as_on": "08-Jun-2026", "centre_count": 28, "pincode_count": 406}};
+let CENTRES = MASTER.centres;   // live reference for admin edits
+
+const GREEN='#16A34A',GREEN_D='#0F7A37',AMBER='#C8821A',BLUE='#2B5FA8',ROSE='#B23B4E';
+const STATE_OF={Delhi:'Delhi',Noida:'Uttar Pradesh','Greater Noida':'Uttar Pradesh',Ghaziabad:'Uttar Pradesh',Meerut:'Uttar Pradesh',Agra:'Uttar Pradesh',Aligarh:'Uttar Pradesh',Bulandshahr:'Uttar Pradesh',Etah:'Uttar Pradesh',Kanpur:'Uttar Pradesh',Lucknow:'Uttar Pradesh',Gurugram:'Haryana',Faridabad:'Haryana',Yamunanagar:'Haryana'};
+const uniq=a=>[...new Set(a)].filter(Boolean);
+/* ============ CENTRALIZED SERVICE ENGINE (single source of truth) ============
+   The per-centre service status (IN / OUT / NA) plus the service registry form the
+   master state. Management saves this state on every edit; the Executive and Client
+   dashboards load it at startup. Toggling a service In-House <-> Outsourced in
+   Management therefore updates every panel, profile, matrix, map and export across
+   all three dashboards (same browser) with no manual updates. */
+const NET_KEY='network_state_v1';
+function loadNetworkState(){
+  try{
+    const raw=localStorage.getItem(NET_KEY);
+    if(!raw)return false;
+    const saved=JSON.parse(raw);
+    if(saved&&Array.isArray(saved.centres)&&saved.centres.length&&Array.isArray(saved.services)&&saved.services.length){
+      MASTER.centres=saved.centres;
+      MASTER.services=saved.services;
+      if(Array.isArray(saved.pincodes)&&saved.pincodes.length)MASTER.pincodes=saved.pincodes;
+      MASTER._live=true;MASTER._savedAt=saved.savedAt||'';
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+function saveNetworkState(){
+  try{
+    localStorage.setItem(NET_KEY,JSON.stringify({centres:MASTER.centres,services:MASTER.services,pincodes:MASTER.pincodes,savedAt:new Date().toISOString()}));
+    MASTER._live=true;
+  }catch(e){}
+}
+function clearNetworkState(){try{localStorage.removeItem(NET_KEY);}catch(e){}}
+
+const svcLabel=f=>f==='IN'?'<span class="svc-yes">In-house</span>':f==='OUT'?'<span class="svc-out">Outsourced</span>':'<span class="svc-no">—</span>';
+const cell=f=>f==='IN'?'<span class="cell-in">✓</span>':f==='OUT'?'<span class="cell-out">OUT</span>':'<span class="cell-no">✕</span>';
+function accBadge(c){if(c.nabl&&c.iso)return '<span class="badge-c b-both">NABL · ISO</span>';if(c.nabl)return '<span class="badge-c b-nabl">NABL</span>';if(c.iso)return '<span class="badge-c b-iso">ISO</span>';return '<span class="muted">—</span>';}
+function haversine(a,b,c,d){const R=6371,dLat=(c-a)*Math.PI/180,dLng=(d-b)*Math.PI/180;const x=Math.sin(dLat/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dLng/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
+function toast(msg){const t=document.createElement('div');t.textContent=msg;t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#0C1B12;color:#fff;padding:12px 22px;border-radius:12px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 12px 30px rgba(0,0,0,.3)';document.body.appendChild(t);setTimeout(()=>t.remove(),2200);}
+function dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();}
+function countUp(){document.querySelectorAll('[data-target]').forEach(el=>{const t=+el.dataset.target;if(isNaN(t))return;let s=0;const step=Math.max(1,Math.ceil(t/28));const iv=setInterval(()=>{s+=step;if(s>=t){s=t;clearInterval(iv);}el.textContent=s.toLocaleString();},22);});}
+
+/* find nearest centres/pincodes by query */
+function resolveRef(q){
+  q=(q||'').trim().toLowerCase();if(!q)return null;
+  if(/^\d{3,6}$/.test(q)){
+    let exact=MASTER.centres.filter(c=>c.pincode===q);
+    if(exact.length)return{ref:exact[0],exactCentres:exact,pin:q};
+    let pinHit=MASTER.pincodes.find(p=>p.pin===q);
+    if(pinHit)return{ref:pinHit,exactCentres:[],pin:q,pinRow:pinHit};
+    const sorted=MASTER.centres.map(c=>({c,d:Math.abs(parseInt(c.pincode)-parseInt(q.padEnd(6,'0')))})).sort((a,b)=>a.d-b.d);
+    return{ref:sorted[0].c,exactCentres:[],pin:q};
+  }
+  const byCity=MASTER.centres.filter(c=>c.city.toLowerCase().includes(q));
+  if(byCity.length)return{ref:byCity[0],exactCentres:[],city:q};
+  const pinCity=MASTER.pincodes.find(p=>p.city.toLowerCase().includes(q));
+  if(pinCity)return{ref:pinCity,exactCentres:[],city:q,pinRow:pinCity};
+  return null;
+}
+function nearestCentres(ref,n=6,filterFn=null){
+  let list=MASTER.centres.map(c=>({...c,_d:haversine(ref.lat,ref.lng,c.lat,c.lng)}));
+  if(filterFn)list=list.filter(filterFn);
+  return list.sort((a,b)=>a._d-b._d).slice(0,n);
+}
+function homeCoverage(pin){
+  const row=MASTER.pincodes.find(p=>p.pin===pin);
+  return row?{covered:true,row}:{covered:false};
+}
+/* Standard operating schedule (used unless a centre carries custom timings). */
+const STD_DAYS='Open 7 Days a Week';
+const STD_HOURS='08:00 AM – 08:00 PM';
+/* Pincodes a centre is taken to serve = the home-collection pincodes in its city/district.
+   (The source data lists home-collection coverage by city, not per-centre, so city is the link.) */
+function centrePincodes(c){
+  const city=(c.city||'').trim().toLowerCase();
+  return (MASTER.pincodes||[]).filter(p=>(p.city||'').trim().toLowerCase()===city);
+}
+function centreCoverage(c){
+  const pins=centrePincodes(c);
+  const free=pins.filter(p=>p.free).length;
+  const localitySet=new Set();
+  pins.forEach(p=>(p.localities||'').split(',').forEach(l=>{const t=l.trim();if(t)localitySet.add(t);}));
+  return {pins,total:pins.length,free,paid:pins.length-free,localities:localitySet.size,hasHC:pins.length>0};
+}
+
+/* ============ COMPLETE EXPORTS (shared) ============ */
+/* The service set is now DERIVED from the dynamic registry (MASTER.services), so adding
+   a service in the Service Master automatically flows into every export, matrix and KPI. */
+function SVC_LIST(){ return (MASTER.services||[]).map(s=>[s.name,s.id]); }
+const SVC_COLS=(MASTER.services||[]).map(s=>[s.name,s.id]); // static snapshot for early calls; UI uses SVC_LIST()
+const svcWord=v=>v==='IN'?'In-house':v==='OUT'?'Outsourced':'Not available';
+function accText(c){return (c.nabl&&c.iso)?'NABL + ISO':c.nabl?'NABL':c.iso?'ISO':(c.status||'—');}
+/* Outsource cost for a given centre+service. Per-centre override wins, else the registry default. */
+function svcDef(id){return (MASTER.services||[]).find(s=>s.id===id)||{};}
+function outsourceCost(c,id){const o=c['cost_'+id];if(o!=null&&o>0)return o;const d=svcDef(id);return d.cost||0;}
+function isOutsourceService(id){return !!svcDef(id).outsource;}
+
+/* Directory rows: identity + accreditation + every service spelled out + contacts */
+function directoryAOA(list){
+  const S=SVC_LIST();
+  const head=['S.No','Centre','City','State','Pincode','Accreditation',...S.map(s=>s[0]),'SPOC','Contact','Email','Google Location','Full Address'];
+  const rows=list.map(c=>[c.sno,c.name,c.city,(STATE_OF[c.city]||''),c.pincode,accText(c),...S.map(s=>svcWord(c[s[1]])),c.spoc||'',c.contact||'',c.email||'',c.location||'',c.address||'']);
+  return [head,...rows];
+}
+/* Service matrix rows: compact ✓/Outsourced/✗ across the full (dynamic) service set */
+function matrixAOA(list){
+  const S=SVC_LIST();
+  const head=['Centre','City','Pincode',...S.map(s=>s[0])];
+  const rows=list.map(c=>[c.name,c.city,c.pincode,...S.map(s=>c[s[1]]==='IN'?'Yes':c[s[1]]==='OUT'?'Outsourced':'No')]);
+  return [head,...rows];
+}
+/* Outsource payment-tracking export (admin) */
+function outsourceAOA(){
+  const head=['Centre','City','Service','Outsource Charge (Rs)','Payment Status','Report Release'];
+  const rows=[];
+  list_outsource_rows().forEach(r=>rows.push([r.centre,r.city,r.service,r.cost,r.payStatus,r.release]));
+  return [head,...rows];
+}
+/* Home-collection coverage rows */
+function coverageAOA(){
+  const head=['Pincode','City / District','State','Collection Charge','Covered Localities'];
+  const rows=MASTER.pincodes.map(p=>[p.pin,p.city,p.state,p.free?'No Charge':('Rs '+p.charge),p.localities||'']);
+  return [head,...rows];
+}
+function autoWidth(aoa){return aoa[0].map((_,i)=>({wch:Math.min(60,Math.max(10,...aoa.map(r=>(r[i]==null?'':String(r[i])).length)))}));}
+
+/* Master workbook: Directory + Service Matrix + Home Collection — the complete export */
+function exportExcel(list,filename){
+  list=list||MASTER.centres;
+  if(typeof XLSX==='undefined'){toast('Excel library still loading — try again in a moment');return;}
+  const wb=XLSX.utils.book_new();
+  const dir=directoryAOA(list);const mtx=matrixAOA(list);const cov=coverageAOA();
+  const wsDir=XLSX.utils.aoa_to_sheet(dir);wsDir['!cols']=autoWidth(dir);
+  const wsMtx=XLSX.utils.aoa_to_sheet(mtx);wsMtx['!cols']=autoWidth(mtx);
+  const wsCov=XLSX.utils.aoa_to_sheet(cov);wsCov['!cols']=autoWidth(cov);
+  XLSX.utils.book_append_sheet(wb,wsDir,'Centre Directory');
+  XLSX.utils.book_append_sheet(wb,wsMtx,'Service Matrix');
+  XLSX.utils.book_append_sheet(wb,wsCov,'Home Collection');
+  XLSX.writeFile(wb,filename||'Network_Report.xlsx');
+  toast('Excel downloaded — 3 sheets');
+}
+/* Service matrix only, but still complete (all services) */
+function exportServiceExcel(list){
+  list=list||MASTER.centres;
+  if(typeof XLSX==='undefined'){toast('Excel library still loading — try again in a moment');return;}
+  const wb=XLSX.utils.book_new();
+  const mtx=matrixAOA(list);const dir=directoryAOA(list);
+  const wsMtx=XLSX.utils.aoa_to_sheet(mtx);wsMtx['!cols']=autoWidth(mtx);
+  const wsDir=XLSX.utils.aoa_to_sheet(dir);wsDir['!cols']=autoWidth(dir);
+  XLSX.utils.book_append_sheet(wb,wsMtx,'Service Matrix');
+  XLSX.utils.book_append_sheet(wb,wsDir,'Full Directory');
+  XLSX.writeFile(wb,'Service_Availability.xlsx');
+  toast('Service availability downloaded');
+}
+function exportCoverageExcel(){
+  if(typeof XLSX==='undefined'){toast('Excel library still loading — try again');return;}
+  const wb=XLSX.utils.book_new();const cov=coverageAOA();
+  const ws=XLSX.utils.aoa_to_sheet(cov);ws['!cols']=autoWidth(cov);
+  XLSX.utils.book_append_sheet(wb,ws,'Home Collection Coverage');
+  XLSX.writeFile(wb,'HomeCollection_Coverage.xlsx');
+  toast('Coverage Excel downloaded');
+}
+
+/* ============ OUTSOURCE PAYMENT TRACKING (shared) ============
+   For every centre where an outsource service is active, we track payment + report-release
+   status. Status persists in this browser via localStorage so the workflow survives reloads.
+   Workflow: Pending Payment -> Payment Received -> Report Release Allowed. */
+const OS_KEY='outsource_status_v1';
+let OS_STATE={};
+try{OS_STATE=JSON.parse(localStorage.getItem(OS_KEY)||'{}');}catch(e){OS_STATE={};}
+function osKey(sno,svcId){return sno+'::'+svcId;}
+function osStatus(sno,svcId){return OS_STATE[osKey(sno,svcId)]||'pending';}
+function osSet(sno,svcId,val){OS_STATE[osKey(sno,svcId)]=val;try{localStorage.setItem(OS_KEY,JSON.stringify(OS_STATE));}catch(e){}}
+function osReleaseLabel(st){return st==='received'?'Release allowed':'On hold';}
+/* All active outsource line-items across the network (centre × outsourced service). */
+function list_outsource_rows(){
+  const rows=[];
+  (MASTER.centres||[]).forEach(c=>{
+    (MASTER.services||[]).forEach(s=>{
+      if(s.outsource && c[s.id]==='OUT'){
+        const st=osStatus(c.sno,s.id);
+        rows.push({sno:c.sno,centre:c.name,city:c.city,service:s.name,svcId:s.id,
+          cost:outsourceCost(c,s.id),payStatus:st==='received'?'Payment received':'Pending payment',
+          statusRaw:st,release:osReleaseLabel(st)});
+      }
+    });
+  });
+  return rows;
+}
+
+/* PDF via a clean print window (works offline, no extra library). Builds a styled, complete table. */
+function exportPDF(kind,list){
+  list=list||MASTER.centres;
+  let title,aoa,note='';
+  if(kind==='service'){title='Service Availability Matrix';aoa=matrixAOA(list);note='Yes = in-house · Outsourced = via partner · No = not available.';}
+  else if(kind==='coverage'){title='Home Collection Coverage';aoa=coverageAOA();}
+  else if(kind==='outsource'){title='Outsource Payment Register';aoa=outsourceAOA();note='Report release is allowed only after the outsource charge is received.';}
+  else{title='Centre Directory';aoa=directoryAOA(list);}
+  const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const cellClass=v=>v==='Yes'||v==='In-house'?'y':(v==='Outsourced'?'o':(v==='No'||v==='Not available'?'n':''));
+  const head='<tr>'+aoa[0].map(h=>`<th>${esc(h)}</th>`).join('')+'</tr>';
+  const body=aoa.slice(1).map(r=>'<tr>'+r.map(c=>`<td class="${cellClass(c)}">${esc(c)}</td>`).join('')+'</tr>').join('');
+  const w=window.open('','_blank');
+  if(!w){toast('Allow pop-ups to export PDF');return;}
+  w.document.write(`<!DOCTYPE html><html><head><title>${title}</title><meta charset="utf-8">
+  <style>
+    @page{size:A4 landscape;margin:12mm}
+    *{font-family:Arial,Helvetica,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    body{margin:0;color:#0B1A10}
+    .h{display:flex;align-items:center;gap:12px;border-bottom:3px solid #16A34A;padding-bottom:12px;margin-bottom:14px}
+    .logo{width:34px;height:34px;border-radius:9px;background:#16A34A;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:16px;font-family:Arial}
+    h1{font-size:18px;margin:0}.sub{font-size:11px;color:#586B5F;margin-top:2px}
+    .meta{margin-left:auto;text-align:right;font-size:10px;color:#586B5F}
+    table{width:100%;border-collapse:collapse;font-size:9px}
+    th{background:#0B2415;color:#fff;text-align:left;padding:6px 5px;font-size:9px}
+    td{padding:5px;border-bottom:1px solid #E2EAE4;vertical-align:top}
+    tr:nth-child(even) td{background:#F7F9F7}
+    td.y{color:#0F7A37;font-weight:bold}td.o{color:#C8821A;font-weight:bold}td.n{color:#B0BBB3}
+    .note{font-size:10px;color:#80591A;background:#FBF1E0;border:1px solid #F0DCB4;border-radius:8px;padding:8px 10px;margin:10px 0}
+    .foot{margin-top:14px;font-size:9px;color:#586B5F;border-top:1px solid #E2EAE4;padding-top:8px}
+  </style></head><body>
+  <div class="h"><div class="logo">DN</div><div><h1>Diagnostic Network — ${title}</h1><div class="sub">National diagnostic centre coverage &amp; service availability</div></div>
+  <div class="meta">As on 08-Jun-2026<br>${aoa.length-1} records</div></div>
+  ${note?`<div class="note">${note}</div>`:''}
+  <table>${head}${body}</table>
+  <div class="foot">Diagnostic Network · Generated from the live network register</div>
+  <script>window.onload=function(){setTimeout(function(){window.print();},250);}<\/script>
+  </body></html>`);
+  w.document.close();
+}
+
+// Single source of truth: resume the live network state from earlier admin edits (if any)
+if(loadNetworkState())CENTRES=MASTER.centres;
+
+const ROLE='admin'; // this dashboard
+
+/* ---------- NAV ---------- */
+const TITLES={overview:['Network Overview','Administrative control centre'],centres:['Manage Centres','Add, edit & remove network centres'],matrix:['Service Matrix','Capability grid across the network'],map:['GIS Map','Layered coverage footprint'],home:['Home Collection','Doorstep serviceability network'],outsource:['Outsource & Payments','Outsource billing & report-release control'],services:['Service Master','Dynamic service & pricing configuration'],analytics:['Coverage Analytics','Geographic & service intelligence'],admin:['Data & Roles','Master data, roles & integration']};
+let mapInited=false;
+function go(v){
+  document.querySelectorAll('.view').forEach(s=>s.classList.remove('show'));
+  document.getElementById('v-'+v).classList.add('show');
+  document.querySelectorAll('#nav a,#mobnav a').forEach(a=>a.classList.toggle('active',a.dataset.v===v));
+  document.getElementById('pageTitle').textContent=TITLES[v][0];
+  document.getElementById('pageSub').textContent=TITLES[v][1];
+  if(v==='map')setTimeout(initMap,60);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.querySelectorAll('#nav a,#mobnav a').forEach(a=>a.onclick=()=>go(a.dataset.v));
+
+/* ---------- OVERVIEW KPIs ---------- */
+function renderKPIs(){
+  const C=CENTRES;
+  const k=[
+    {n:C.length,l:'Diagnostic centres',f:1,ic:'<path d="M12 21s-7-4.35-7-10a4 4 0 0 1 7-2.65A4 4 0 0 1 19 11c0 5.65-7 10-7 10Z"/>'},
+    {n:uniq(C.map(c=>c.city)).length,l:'Cities (centres)',ic:'<path d="m9 4 6 2 5-2v14l-5 2-6-2-5 2V6l5-2Z"/>'},
+    {n:C.filter(c=>c.tmt==='IN').length,l:'TMT centres',blue:1,ic:'<path d="M3 12h4l3 7 4-14 3 7h4"/>'},
+    {n:C.filter(c=>c.online_consult==='IN').length,l:'Online consultation',ic:'<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8"/>'},
+    {n:C.filter(c=>c.nabl).length,l:'NABL accredited',ic:'<path d="M12 2 4 6v6c0 5 8 8 8 8s8-3 8-8V6Z"/><path d="m9 12 2 2 4-4"/>'},
+    {n:C.filter(c=>c.iso).length,l:'ISO certified',ic:'<circle cx="12" cy="12" r="9"/><path d="m9 12 2 2 4-4"/>'},
+    {n:C.filter(c=>c.ultrasound==='IN').length,l:'In-house Ultrasound',ic:'<circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/>'},
+    {n:C.filter(c=>c.bmd==='IN').length,l:'BMD centres',blue:1,ic:'<path d="M7 10c0-2 2-3 5-3s5 1 5 3-2 3-5 3-5-1-5-3ZM7 10v4c0 2 2 3 5 3s5-1 5-3v-4"/>'},
+    {n:MASTER.pincodes.length,l:'Home-collection pincodes',blue:1,ic:'<path d="M3 11l9-7 9 7M5 10v10h14V10"/>'},
+    {n:uniq(MASTER.pincodes.map(p=>p.city)).length,l:'Home-collection cities',ic:'<path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/>'},
+    {n:MASTER.pincodes.filter(p=>p.free).length,l:'Free-collection pincodes',ic:'<path d="M20 6 9 17l-5-5"/>'},
+  ];
+  document.getElementById('kpiGrid').innerHTML=k.map(x=>`<div class="kpi ${x.f?'feature':''} ${x.blue?'blue':''}"><div class="edge"></div><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${x.ic}</svg></div><div class="num" data-target="${x.n}">0</div><div class="lab">${x.l}</div></div>`).join('');
+  countUp();
+  document.getElementById('liveCount').textContent=C.length;
+}
+function renderCityRank(){
+  const counts={};CENTRES.forEach(c=>counts[c.city]=(counts[c.city]||0)+1);
+  const arr=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,8);const max=Math.max(...arr.map(a=>a[1]));
+  document.getElementById('cityRank').innerHTML=arr.map(([city,n],i)=>`<div class="rank-row"><div class="rank-n">${i+1}</div><div class="rank-city">${city}</div><div class="rank-bar"><div class="rank-fill" style="width:0" data-w="${n/max*100}"></div></div><div class="rank-val">${n}</div></div>`).join('');
+  setTimeout(()=>document.querySelectorAll('#cityRank .rank-fill').forEach(f=>f.style.width=f.dataset.w+'%'),100);
+}
+
+/* ---------- CHARTS ---------- */
+let charts={};
+function destroyChart(k){if(charts[k]){charts[k].destroy();delete charts[k];}}
+function overviewCharts(){
+  const C=CENTRES;
+  destroyChart('acc');
+  const both=C.filter(c=>c.nabl&&c.iso).length,nablOnly=C.filter(c=>c.nabl&&!c.iso).length,isoOnly=C.filter(c=>c.iso&&!c.nabl).length;
+  charts.acc=new Chart(document.getElementById('accChart'),{type:'doughnut',data:{labels:['NABL + ISO','NABL only','ISO only'],datasets:[{data:[both,nablOnly,isoOnly],backgroundColor:[GREEN,GREEN_D,BLUE],borderWidth:3,borderColor:'#fff'}]},options:{cutout:'66%',plugins:{legend:{display:false}}}});
+  document.getElementById('accLegend').innerHTML=[['NABL + ISO',GREEN,both],['NABL only',GREEN_D,nablOnly],['ISO only',BLUE,isoOnly]].map(([l,c,n])=>`<span><span class="lg-dot" style="background:${c}"></span>${l} · ${n}</span>`).join('');
+  destroyChart('svc');
+  const svc=[['TMT/Path/X-Ray','xray'],['Ultrasound','ultrasound'],['2D Echo','echo'],['Sono-mammo','sonomammography'],['Vaccination','vaccination'],['Online consult','online_consult']];
+  const inH=svc.map(([_,k])=>C.filter(c=>c[k]==='IN').length),out=svc.map(([_,k])=>C.filter(c=>c[k]==='OUT').length),na=svc.map(([_,k])=>C.filter(c=>c[k]==='NA').length);
+  charts.svc=new Chart(document.getElementById('svcChart'),{type:'bar',data:{labels:svc.map(s=>s[0]),datasets:[{label:'In-house',data:inH,backgroundColor:GREEN,borderRadius:5},{label:'Outsourced',data:out,backgroundColor:AMBER,borderRadius:5},{label:'Not available',data:na,backgroundColor:'#D5DDD8',borderRadius:5}]},options:{plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:18}}},scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#EEF3EF'}}}}});
+}
+function analyticsCharts(){
+  const C=CENTRES;
+  destroyChart('cityBar');destroyChart('hvCityBar');destroyChart('state');destroyChart('svcBar2');
+  const counts={};C.forEach(c=>counts[c.city]=(counts[c.city]||0)+1);const arr=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  charts.cityBar=new Chart(document.getElementById('cityBar'),{type:'bar',data:{labels:arr.map(a=>a[0]),datasets:[{data:arr.map(a=>a[1]),backgroundColor:GREEN,borderRadius:6,maxBarThickness:28}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:'#EEF3EF'},ticks:{stepSize:1}},y:{grid:{display:false}}}}});
+  const hv={};MASTER.pincodes.forEach(p=>hv[p.city]=(hv[p.city]||0)+1);const hvArr=Object.entries(hv).sort((a,b)=>b[1]-a[1]).slice(0,12);
+  charts.hvCityBar=new Chart(document.getElementById('hvCityBar'),{type:'bar',data:{labels:hvArr.map(a=>a[0]),datasets:[{data:hvArr.map(a=>a[1]),backgroundColor:AMBER,borderRadius:6,maxBarThickness:28}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:'#EEF3EF'}},y:{grid:{display:false}}}}});
+  const st={};C.forEach(c=>{const s=STATE_OF[c.city]||'Other';st[s]=(st[s]||0)+1;});const se=Object.entries(st).sort((a,b)=>b[1]-a[1]);const cols=[GREEN,GREEN_D,BLUE,AMBER,ROSE];
+  charts.state=new Chart(document.getElementById('stateDoughnut'),{type:'doughnut',data:{labels:se.map(s=>s[0]),datasets:[{data:se.map(s=>s[1]),backgroundColor:cols,borderWidth:3,borderColor:'#fff'}]},options:{cutout:'60%',plugins:{legend:{display:false}}}});
+  document.getElementById('stateLegend').innerHTML=se.map((s,i)=>`<span><span class="lg-dot" style="background:${cols[i]}"></span>${s[0]} · ${s[1]}</span>`).join('');
+  const svc=[['TMT','tmt'],['X-Ray','xray'],['USG','ultrasound'],['2D Echo','echo'],['Vaccin.','vaccination'],['Online','online_consult']];
+  charts.svcBar2=new Chart(document.getElementById('svcBar2'),{type:'bar',data:{labels:svc.map(s=>s[0]),datasets:[{label:'In-house',data:svc.map(([_,k])=>C.filter(c=>c[k]==='IN').length),backgroundColor:GREEN,borderRadius:6},{label:'Outsourced',data:svc.map(([_,k])=>C.filter(c=>c[k]==='OUT').length),backgroundColor:AMBER,borderRadius:6}]},options:{plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle'}}},scales:{x:{grid:{display:false}},y:{grid:{color:'#EEF3EF'}}}}});
+  renderCityTable();
+}
+function _analyticsChartsEnd(){}
+function renderCityTable(){
+  const cities={};CENTRES.forEach(c=>{(cities[c.city]=cities[c.city]||[]).push(c);});
+  const hv={};MASTER.pincodes.forEach(p=>{const k=p.city.toLowerCase();hv[k]=(hv[k]||0)+1;});
+  document.querySelector('#cityTable tbody').innerHTML=Object.entries(cities).sort((a,b)=>b[1].length-a[1].length).map(([city,list])=>{
+    const hvc=hv[city.toLowerCase()]||hv[city.toLowerCase().replace('gurugram','gurgaon')]||0;
+    return `<tr><td>${city}</td><td>${list.length}</td><td>${list.filter(c=>c.nabl).length}</td><td>${list.filter(c=>c.iso).length}</td><td>${list.filter(c=>c.tmt==='IN').length}</td><td>${list.filter(c=>c.ultrasound==='IN').length}</td><td>${list.filter(c=>c.online_consult==='IN').length}</td><td>${hvc||'—'}</td></tr>`;
+  }).join('');
+}
+
+/* ---------- CENTRES TABLE (CRUD) ---------- */
+let dt;
+function actionsBtns(c){return `<div style="display:flex;gap:6px"><button class="btn sm" onclick="openEditor(${c.sno})">Edit</button><button class="btn sm danger" onclick="delCentre(${c.sno})">Delete</button></div>`;}
+function rowHtml(c){
+  return `<tr><td class="mono">${c.sno}</td><td><div class="dc-name">${c.name}</div><div class="dc-addr">${c.address}</div></td><td>${c.city}</td><td class="mono">${c.pincode}</td><td>${accBadge(c)}</td><td>${svcLabel(c.tmt)}</td><td>${svcLabel(c.ultrasound)}</td><td>${c.vaccination==='IN'?'<span class="svc-yes">Yes</span>':'<span class="svc-no">—</span>'}</td><td>${c.online_consult==='IN'?'<span class="svc-yes">Yes</span>':'<span class="svc-no">—</span>'}</td><td class="contact-cell">${c.spoc||'—'}</td><td class="contact-cell">${c.contact?`<a href="tel:${c.contact}">${c.contact}</a>`:'—'}</td><td>${actionsBtns(c)}</td></tr>`;
+}
+function buildTable(){
+  document.querySelector('#dcTable tbody').innerHTML=CENTRES.map(rowHtml).join('');
+  if(typeof $==='undefined'||!$.fn||!$.fn.dataTable){
+    // jQuery/DataTables not available — rows are still rendered and Edit/Delete work
+    document.getElementById('dirCount').textContent=CENTRES.length+' centres';
+    return;
+  }
+  registerDcFilter();
+  if(dt){try{dt.destroy();}catch(e){}}
+  dt=$('#dcTable').DataTable({pageLength:10,lengthMenu:[[10,25,50,-1],[10,25,50,'All']],order:[[0,'asc']],columnDefs:[{targets:[5,6,7,8,11],orderable:false}],language:{search:"",searchPlaceholder:"Search centres…"},dom:'<"dt-top"lf>rt<"dt-bot"ip>'});
+  applyFilters();
+}
+function registerDcFilter(){
+  if(typeof $==='undefined'||!$.fn||!$.fn.dataTable)return false;
+  $.fn.dataTable.ext.search.push((s,d,idx)=>{
+    if(s.nTable.id!=='dcTable')return true;const c=CENTRES[idx];if(!c)return true;
+    const city=val('f-city'),acc=val('f-acc'),pin=val('f-pin'),tmt=val('f-tmt'),usg=val('f-usg'),bmd=val('f-bmd'),con=val('f-con');
+    if(city&&c.city!==city)return false;if(acc==='nabl'&&!c.nabl)return false;if(acc==='iso'&&!c.iso)return false;
+    if(pin&&c.pincode!==pin)return false;if(tmt&&c.tmt!==tmt)return false;if(usg&&c.ultrasound!==usg)return false;if(bmd&&c.bmd!==bmd)return false;if(con&&c.online_consult!==con)return false;return true;
+  });
+  return true;
+}
+const val=id=>document.getElementById(id)?document.getElementById(id).value:'';
+function applyFilters(){if(dt){dt.draw();document.getElementById('dirCount').textContent=dt.rows({filter:'applied'}).count()+' shown';}}
+function resetFilters(){['f-city','f-acc','f-pin','f-tmt','f-usg','f-bmd','f-con'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});applyFilters();}
+['f-city','f-acc','f-pin','f-tmt','f-usg','f-bmd','f-con'].forEach(id=>document.addEventListener('change',e=>{if(e.target.id===id)applyFilters();}));
+function fillFilters(){
+  const cities=uniq(CENTRES.map(c=>c.city)).sort(),pins=uniq(CENTRES.map(c=>c.pincode)).sort();
+  document.getElementById('f-city').innerHTML='<option value="">All cities</option>'+cities.map(c=>`<option>${c}</option>`).join('');
+  document.getElementById('f-pin').innerHTML='<option value="">All pincodes</option>'+pins.map(p=>`<option>${p}</option>`).join('');
+  document.getElementById('mapCity').innerHTML='<option value="">All locations</option>'+cities.map(c=>`<option>${c}</option>`).join('');
+  const hvCities=uniq(MASTER.pincodes.map(p=>p.city)).sort();
+  document.getElementById('homeCityFilter').innerHTML='<option value="">All cities</option>'+hvCities.map(c=>`<option>${c}</option>`).join('');
+}
+
+/* ---------- EDITOR (dynamic, registry-driven) ---------- */
+let editSno=null;
+function buildEditorServiceRows(c){
+  c=c||{};
+  document.getElementById('editorServices').innerHTML=MASTER.services.map(s=>{
+    const cur=c[s.id]||'NA';
+    const opts=s.category==='Preventive'||s.category==='Consultation'
+      ? `<option value="IN">Available</option><option value="NA">Not available</option>`
+      : `<option value="IN">In-house</option><option value="OUT">Outsourced</option><option value="NA">Not available</option>`;
+    const costVal=(c['cost_'+s.id]!=null?c['cost_'+s.id]:(s.cost||0));
+    const costRow=s.outsource?`<div class="fld" style="margin-top:6px" data-cost-wrap="${s.id}"><label style="font-size:10px">Outsource charge (Rs) — paid against report</label><input type="number" id="ecost-${s.id}" value="${costVal}" min="0"></div>`:'';
+    return `<div class="fld" style="margin:0"><label>${s.name}${s.outsource?' <span style="color:var(--amber);font-size:10px">· outsourced billing</span>':''}</label>
+      <select id="esvc-${s.id}" onchange="toggleCostRow('${s.id}')">${opts}</select>${costRow}</div>`;
+  }).join('');
+  // set current values + cost visibility
+  MASTER.services.forEach(s=>{const sel=document.getElementById('esvc-'+s.id);if(sel)sel.value=c[s.id]||'NA';toggleCostRow(s.id);});
+}
+function toggleCostRow(id){
+  const wrap=document.querySelector(`[data-cost-wrap="${id}"]`);if(!wrap)return;
+  const v=document.getElementById('esvc-'+id).value;
+  wrap.style.display=(v==='OUT')?'block':'none';
+}
+function openEditor(sno){
+  editSno=sno||null;
+  document.getElementById('editorTitle').textContent=sno?'Edit centre':'Add centre';
+  const c=sno?CENTRES.find(x=>x.sno===sno):{};
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v||'';};
+  set('e-name',c.name);set('e-city',c.city);set('e-address',c.address);set('e-pincode',c.pincode);
+  set('e-status',c.status||'NABL Accredited');set('e-contact',c.contact);set('e-spoc',c.spoc);set('e-email',c.email);set('e-location',c.location);
+  buildEditorServiceRows(c);
+  document.getElementById('editorBg').classList.add('show');
+}
+function closeEditor(){document.getElementById('editorBg').classList.remove('show');}
+function saveCentre(){
+  const su=(val('e-status')||'').toUpperCase();
+  const cityV=val('e-city').trim();
+  const ref=CENTRES.find(c=>c.city.toLowerCase()===cityV.toLowerCase())||{};
+  const obj={
+    sno:editSno||Math.max(0,...CENTRES.map(c=>c.sno))+1,
+    name:val('e-name').trim(),city:cityV.replace(/\b\w/g,m=>m.toUpperCase()),address:val('e-address').trim(),pincode:val('e-pincode').trim(),
+    status:val('e-status'),nabl:su.includes('NABL'),iso:su.includes('ISO'),
+    spoc:val('e-spoc').trim(),contact:val('e-contact').trim(),email:val('e-email').trim(),location:val('e-location').trim(),
+    lat:ref.lat||28.6,lng:ref.lng||77.2,
+  };
+  // read every service generically from the registry
+  MASTER.services.forEach(s=>{
+    const sel=document.getElementById('esvc-'+s.id);
+    obj[s.id]=sel?sel.value:'NA';
+    if(s.id==='tmt'){['ecg','xray','pft','audiometry','papsmear'].forEach(k=>obj[k]=obj.tmt);} // grouped pathology mirror
+    if(s.id==='online_consult'){obj.after_report=obj.online_consult;obj.consultation=obj.online_consult;}
+    if(s.outsource){const ci=document.getElementById('ecost-'+s.id);obj['cost_'+s.id]=ci?(parseInt(ci.value)||0):0;}
+  });
+  if(!obj.name||!obj.city){toast('Name and city are required');return;}
+  if(editSno){const i=CENTRES.findIndex(c=>c.sno===editSno);CENTRES[i]=obj;toast('Centre updated');}
+  else{CENTRES.push(obj);toast('Centre added');}
+  closeEditor();saveNetworkState();refreshAll();go('centres');
+}
+function delCentre(sno){
+  const c=CENTRES.find(x=>x.sno===sno);
+  if(!confirm('Delete "'+c.name+'"? This removes it from every view in this session.'))return;
+  const i=CENTRES.findIndex(x=>x.sno===sno);CENTRES.splice(i,1);saveNetworkState();refreshAll();toast('Centre deleted');
+}
+function resetNetworkState(){
+  if(!confirm('Discard all live edits and restore the original Excel data across all dashboards?'))return;
+  clearNetworkState();location.reload();
+}
+
+/* ---------- MATRIX ---------- */
+function renderMatrix(){
+  const S=MASTER.services;
+  document.getElementById('matrixHead').innerHTML='<th>Centre</th>'+S.map(s=>`<th title="${s.name}">${s.name.replace(/ \(.*\)/,'').replace('Sonomammography','Sono-mammo')}</th>`).join('');
+  document.querySelector('#matrixTable tbody').innerHTML=CENTRES.map(c=>`<tr><td>${c.name}</td>${S.map(s=>`<td>${cell(c[s.id])}</td>`).join('')}</tr>`).join('');
+}
+
+/* ---------- OUTSOURCE MANAGEMENT ---------- */
+function renderOutsource(){
+  const rows=list_outsource_rows();
+  const filt=document.getElementById('osFilter').value;
+  const shown=filt?rows.filter(r=>r.statusRaw===filt):rows;
+  const totalDue=rows.filter(r=>r.statusRaw!=='received').reduce((a,r)=>a+r.cost,0);
+  const received=rows.filter(r=>r.statusRaw==='received').length;
+  document.getElementById('osKpi').innerHTML=[
+    {n:rows.length,l:'Outsource line-items',f:1,ic:'<path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>'},
+    {n:rows.filter(r=>r.statusRaw!=='received').length,l:'Pending payment',ic:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>'},
+    {n:received,l:'Payment received',ic:'<path d="M20 6 9 17l-5-5"/>'},
+    {n:'₹'+totalDue.toLocaleString(),l:'Outstanding charges',ic:'<path d="M12 2v20M6 7h9a3 3 0 0 1 0 6H8"/>'},
+  ].map(x=>`<div class="kpi ${x.f?'feature':''}"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${x.ic}</svg></div><div class="num">${x.n}</div><div class="lab">${x.l}</div></div>`).join('');
+  document.querySelector('#osTable tbody').innerHTML=shown.map(r=>{
+    const paid=r.statusRaw==='received';
+    const relTag=paid?'<span class="cell-in">✓ Allowed</span>':'<span class="cell-out">On hold</span>';
+    const btn=paid
+      ?`<button class="btn sm" onclick="setOs(${r.sno},'${r.svcId}','pending')">Revert to pending</button>`
+      :`<button class="btn sm primary" onclick="setOs(${r.sno},'${r.svcId}','received')">Mark received</button>`;
+    return `<tr><td>${r.centre}</td><td>${r.city}</td><td>${r.service}</td><td class="mono">₹${r.cost.toLocaleString()}</td><td>${paid?'<span class="svc-yes">Payment received</span>':'<span class="svc-out">Pending payment</span>'}</td><td>${relTag}</td><td>${btn}</td></tr>`;
+  }).join('')||'<tr><td colspan="7" class="muted" style="text-align:center;padding:20px">No outsource items match.</td></tr>';
+  document.getElementById('osCount').textContent=rows.length+' items';
+}
+function setOs(sno,svcId,val){osSet(sno,svcId,val);renderOutsource();toast(val==='received'?'Payment recorded — report release allowed':'Reverted to pending');}
+
+/* ---------- SERVICE MASTER (dynamic pricing) ---------- */
+function renderServiceMaster(){
+  const S=MASTER.services;
+  document.querySelector('#svcMasterTable tbody').innerHTML=S.map((s,idx)=>{
+    const offering=CENTRES.filter(c=>c[s.id]==='IN'||c[s.id]==='OUT').length;
+    const enabled=s.enabled!==false;
+    return `<tr><td>${s.name}</td><td>${s.category||'—'}</td><td>${offering}</td><td>${s.outsource?'<span class="cell-out">Yes</span>':'<span class="cell-no">No</span>'}</td><td class="mono">${s.outsource?'₹'+(s.cost||0).toLocaleString():'—'}</td><td>${enabled?'<span class="svc-yes">Enabled</span>':'<span class="muted">Disabled</span>'}</td>
+      <td><div style="display:flex;gap:6px"><button class="btn sm" onclick="openSvcEditor('${s.id}')">Edit</button><button class="btn sm" onclick="toggleSvc('${s.id}')">${enabled?'Disable':'Enable'}</button><button class="btn sm danger" onclick="delService('${s.id}')">Delete</button></div></td></tr>`;
+  }).join('');
+  document.getElementById('svcMasterCount').textContent=S.length+' services';
+}
+let editSvcId=null;
+function openSvcEditor(id){
+  editSvcId=id||null;
+  const s=id?MASTER.services.find(x=>x.id===id):{};
+  document.getElementById('svcEditorTitle').textContent=id?'Edit service':'Add service';
+  document.getElementById('s-name').value=s.name||'';
+  document.getElementById('s-category').value=s.category||'';
+  document.getElementById('s-enabled').value=(s.enabled===false)?'0':'1';
+  document.getElementById('s-outsource').value=s.outsource?'1':'0';
+  document.getElementById('s-cost').value=s.cost||0;
+  document.getElementById('s-cost-wrap').style.display=s.outsource?'block':'none';
+  document.getElementById('s-editor-note').textContent=id?'Editing an existing service updates it everywhere instantly.':'New services start as “Not available” at every centre — set availability per centre in the centre editor.';
+  document.getElementById('s-name').disabled=!!id; // id derives from name; keep stable on edit
+  document.getElementById('svcEditorBg').classList.add('show');
+}
+function closeSvcEditor(){document.getElementById('svcEditorBg').classList.remove('show');}
+function saveService(){
+  const name=document.getElementById('s-name').value.trim();
+  if(!name){toast('Service name required');return;}
+  const outsource=document.getElementById('s-outsource').value==='1';
+  const cost=parseInt(document.getElementById('s-cost').value)||0;
+  const category=document.getElementById('s-category').value.trim()||'General';
+  const enabled=document.getElementById('s-enabled').value==='1';
+  if(editSvcId){
+    const s=MASTER.services.find(x=>x.id===editSvcId);
+    s.name=name;s.category=category;s.outsource=outsource;s.cost=cost;s.enabled=enabled;
+    toast('Service updated');
+  }else{
+    const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'');
+    if(MASTER.services.find(x=>x.id===id)){toast('A service with that name already exists');return;}
+    MASTER.services.push({id,name,category,group:null,outsource,cost,enabled:true});
+    CENTRES.forEach(c=>{if(c[id]==null)c[id]='NA';}); // initialise on all centres
+    toast('Service added — now in matrix, editor & exports');
+  }
+  closeSvcEditor();saveNetworkState();refreshAll();go('services');
+}
+function toggleSvc(id){const s=MASTER.services.find(x=>x.id===id);s.enabled=(s.enabled===false);saveNetworkState();refreshAll();toast(s.enabled===false?'Service disabled':'Service enabled');}
+function delService(id){
+  const s=MASTER.services.find(x=>x.id===id);
+  if(!confirm('Remove service "'+s.name+'" from the catalogue? Its column disappears from the matrix and exports.'))return;
+  MASTER.services=MASTER.services.filter(x=>x.id!==id);
+  saveNetworkState();refreshAll();go('services');toast('Service removed');
+}
+
+/* ---------- HOME COLLECTION ---------- */
+let homeDt;
+function renderHome(){
+  const P=MASTER.pincodes;
+  document.getElementById('homeKpi').innerHTML=[
+    {n:P.length,l:'Serviceable pincodes',f:1,ic:'<path d="M3 11l9-7 9 7M5 10v10h14V10"/>'},
+    {n:uniq(P.map(p=>p.city)).length,l:'Cities / districts',ic:'<path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11Z"/>'},
+    {n:uniq(P.map(p=>p.state)).length,l:'States covered',ic:'<path d="m9 4 6 2 5-2v14l-5 2-6-2-5 2V6l5-2Z"/>'},
+    {n:P.filter(p=>p.free).length,l:'Free-collection pincodes',ic:'<path d="M20 6 9 17l-5-5"/>'},
+    {n:P.filter(p=>!p.free).length,l:'Paid-collection pincodes',ic:'<circle cx="12" cy="12" r="9"/><path d="M12 8v8M9 11h6"/>'},
+  ].map(x=>`<div class="kpi ${x.f?'feature':''}"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${x.ic}</svg></div><div class="num" data-target="${x.n}">0</div><div class="lab">${x.l}</div></div>`).join('');
+  countUp();
+  destroyChart('homeState');destroyChart('homeCharge');
+  const st={};P.forEach(p=>st[p.state]=(st[p.state]||0)+1);const se=Object.entries(st).sort((a,b)=>b[1]-a[1]);const cols=[GREEN,GREEN_D,BLUE,AMBER];
+  charts.homeState=new Chart(document.getElementById('homeState'),{type:'doughnut',data:{labels:se.map(s=>s[0]),datasets:[{data:se.map(s=>s[1]),backgroundColor:cols,borderWidth:3,borderColor:'#fff'}]},options:{cutout:'60%',plugins:{legend:{display:false}}}});
+  document.getElementById('homeStateLegend').innerHTML=se.map((s,i)=>`<span><span class="lg-dot" style="background:${cols[i]}"></span>${s[0]} · ${s[1]}</span>`).join('');
+  const free=P.filter(p=>p.free).length,p500=P.filter(p=>p.charge===500).length,p1000=P.filter(p=>p.charge===1000).length;
+  charts.homeCharge=new Chart(document.getElementById('homeCharge'),{type:'doughnut',data:{labels:['No charge','Rs 500','Rs 1000'],datasets:[{data:[free,p500,p1000],backgroundColor:[GREEN,AMBER,ROSE],borderWidth:3,borderColor:'#fff'}]},options:{cutout:'60%',plugins:{legend:{display:false}}}});
+  document.getElementById('homeChargeLegend').innerHTML=[['No charge',GREEN,free],['Rs 500',AMBER,p500],['Rs 1000',ROSE,p1000]].map(([l,c,n])=>`<span><span class="lg-dot" style="background:${c}"></span>${l} · ${n}</span>`).join('');
+  // table
+  document.querySelector('#homeTable tbody').innerHTML=P.map(p=>`<tr><td class="mono">${p.pin}</td><td>${p.city}</td><td>${p.state}</td><td>${p.free?'<span class="svc-yes">No charge</span>':'<span class="svc-out">Rs '+p.charge+'</span>'}</td><td style="font-size:12px;color:var(--slate);max-width:340px">${p.localities||'—'}</td></tr>`).join('');
+  if(typeof $!=='undefined'&&$.fn&&$.fn.dataTable){
+    registerHomeFilter();
+    if(homeDt){try{homeDt.destroy();}catch(e){}}
+    homeDt=$('#homeTable').DataTable({pageLength:10,lengthMenu:[[10,25,50,-1],[10,25,50,'All']],order:[[0,'asc']],language:{search:"",searchPlaceholder:"Search pincode / locality…"},dom:'<"dt-top"lf>rt<"dt-bot"ip>'});
+  }
+  document.getElementById('homeTblCount').textContent=P.length+' pincodes';
+}
+function registerHomeFilter(){
+  if(typeof $==='undefined'||!$.fn||!$.fn.dataTable)return false;
+  $.fn.dataTable.ext.search.push((s,d,idx)=>{
+    if(s.nTable.id!=='homeTable')return true;const city=document.getElementById('homeCityFilter').value;if(!city)return true;return d[1]===city;
+  });
+  return true;
+}
+document.addEventListener('change',e=>{if(e.target.id==='homeCityFilter'&&homeDt)homeDt.draw();});
+function runHome(){
+  const q=document.getElementById('homeInput').value.trim();const msg=document.getElementById('homeMsg');const res=document.getElementById('homeResults');
+  if(!q){msg.textContent='Enter a pincode or city.';res.innerHTML='';return;}
+  if(/^\d{6}$/.test(q)){
+    const cov=homeCoverage(q);
+    if(cov.covered){
+      const p=cov.row;const r=resolveRef(q);const near=nearestCentres(r?r.ref:p,3);
+      msg.innerHTML=`<div class="note green" style="display:flex"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M20 6 9 17l-5-5"/></svg><div><b>Home collection available</b> at ${p.pin} · ${p.city}, ${p.state} — ${p.free?'<b>no collection charge</b>':'collection charge <b>Rs '+p.charge+'</b>'}.<br>Localities: ${p.localities||'—'}</div></div>`;
+      res.innerHTML=near.map(resCard).join('');
+    }else{
+      msg.innerHTML=`<div class="note"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><div><b>${q}</b> is not in the current home-collection network. Showing nearest centres for walk-in instead.</div></div>`;
+      const r=resolveRef(q);res.innerHTML=r?nearestCentres(r.ref,3).map(resCard).join(''):'';
+    }
+  }else{
+    const rows=MASTER.pincodes.filter(p=>p.city.toLowerCase().includes(q.toLowerCase()));
+    if(rows.length){msg.innerHTML=`<div class="note green" style="display:flex"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M20 6 9 17l-5-5"/></svg><div><b>${rows.length} serviceable pincodes</b> in ${rows[0].city}, ${rows[0].state}.</div></div>`;
+      document.getElementById('homeCityFilter').value=rows[0].city;if(homeDt)homeDt.draw();go('home');res.innerHTML='';}
+    else{msg.innerHTML=`<div class="note"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/></svg><div>No home-collection city matches “${q}”.</div></div>`;res.innerHTML='';}
+  }
+}
+
+/* ---------- result card ---------- */
+function resCard(c){
+  const svcs=[['TMT',c.tmt],['X-Ray',c.xray],['USG',c.ultrasound],['2D Echo',c.echo],['Vaccin.',c.vaccination],['Online',c.online_consult]].filter(s=>s[1]==='IN').map(s=>`<span class="pop-chip">${s[0]}</span>`).join('');
+  const dist=c._d==null?'':(c._d<0.5?'In area':c._d.toFixed(1)+' km');
+  return `<div class="res-card"><div class="rc-top"><div class="rc-name">${c.name}</div>${dist?`<div class="rc-dist">${dist}</div>`:''}</div><div class="rc-addr">${c.address}<br><b>${c.city} · ${c.pincode}</b></div><div class="pop-svcs" style="margin-bottom:11px">${svcs||'<span class="muted" style="font-size:11px">Pathology services</span>'}</div><div class="rc-foot"><div style="font-size:12px"><div style="font-weight:600">${c.spoc||'Centre desk'}</div>${c.contact?`<a href="tel:${c.contact}" class="muted" style="font-size:12px">${c.contact}</a>`:''}</div><a class="btn primary sm" href="${c.location||'https://www.google.com/maps/search/?api=1&query='+c.lat+','+c.lng}" target="_blank">Directions</a></div></div>`;
+}
+
+/* ---------- GIS MAP ---------- */
+let map,layers={};
+const activeLayers={dc:true,tmt:true,online:false,hv:false};
+function initMap(){
+  if(typeof L==='undefined'){document.getElementById('map').innerHTML='<div style="height:100%;display:grid;place-items:center;color:var(--slate);font-size:13px;padding:20px;text-align:center">Loading map… if it stays blank, check your connection. The rest of the dashboard works offline.</div>';return setTimeout(initMap,600);}
+  if(!mapInited){
+    map=L.map('map',{scrollWheelZoom:false}).setView([28.55,77.6],8);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap, © CARTO',maxZoom:19}).addTo(map);
+    mapInited=true;
+    document.querySelectorAll('#layerToggles .chip').forEach(ch=>ch.onclick=()=>{ch.classList.toggle('on');activeLayers[ch.dataset.layer]=ch.classList.contains('on');drawLayers();});
+    document.getElementById('mapCity').onchange=function(){const city=this.value;if(!city){map.setView([28.55,77.6],8);return;}const c=CENTRES.find(x=>x.city===city);if(c)map.setView([c.lat,c.lng],11);};
+  }
+  drawLayers();setTimeout(()=>map.invalidateSize(),120);
+}
+function mkIcon(kind,label){return L.divIcon({className:'',html:`<div class="mk ${kind}"><b>${label}</b></div>`,iconSize:[30,30],iconAnchor:[15,30]});}
+function drawLayers(){
+  Object.values(layers).forEach(l=>l&&map.removeLayer(l));layers={};
+  if(activeLayers.dc||activeLayers.tmt||activeLayers.online){
+    const g=L.layerGroup();const byCity={};CENTRES.forEach(c=>{(byCity[c.city]=byCity[c.city]||[]).push(c);});
+    Object.values(byCity).forEach(list=>list.forEach((c,i)=>{
+      const isTmt=c.tmt==='IN',isOn=c.online_consult==='IN';
+      let show=activeLayers.dc||(activeLayers.tmt&&isTmt)||(activeLayers.online&&isOn);if(!show)return;
+      const kind=activeLayers.dc?'dc':(activeLayers.tmt&&isTmt?'tmt':'dc');
+      const jLat=c.lat+(i-list.length/2)*0.012,jLng=c.lng+(i%2?1:-1)*i*0.011;
+      const svcs=[['TMT',c.tmt],['USG',c.ultrasound],['Echo',c.echo],['Online',c.online_consult]].filter(s=>s[1]==='IN').map(s=>`<span class="pop-chip">${s[0]}</span>`).join('');
+      const pop=`<div class="pop-name">${c.name}</div><div class="pop-meta">${c.address}<br><b>${c.city} · ${c.pincode}</b> · ${accBadge(c)}</div><div class="pop-svcs">${svcs}</div><div class="pop-btns"><a href="${c.location||'https://www.google.com/maps/search/?api=1&query='+jLat+','+jLng}" target="_blank">Directions</a>${c.contact?`<a class="alt" href="tel:${c.contact}">Call</a>`:''}</div>`;
+      L.marker([jLat,jLng],{icon:mkIcon(kind,c.sno)}).bindPopup(pop,{minWidth:240}).addTo(g);
+    }));
+    g.addTo(map);layers.centres=g;
+  }
+  if(activeLayers.hv){
+    const g=L.layerGroup();const seen={};
+    MASTER.pincodes.forEach(p=>{const key=p.city;seen[key]=(seen[key]||0);const i=seen[key]++;const jLat=p.lat+(Math.random()-.5)*0.08,jLng=p.lng+(Math.random()-.5)*0.08;
+      L.circleMarker([jLat,jLng],{radius:4,color:AMBER,fillColor:AMBER,fillOpacity:.5,weight:1}).bindPopup(`<div class="pop-name">${p.pin}</div><div class="pop-meta">${p.city}, ${p.state}<br>${p.free?'No collection charge':'Charge: Rs '+p.charge}</div>`).addTo(g);
+    });
+    g.addTo(map);layers.hv=g;
+  }
+}
+
+/* ---------- ADMIN: roles, schema, api ---------- */
+function renderRoles(){
+  const caps=[['View centres & services',1,1,1,1],['Search / find nearest',1,1,1,1],['Download reports (PDF/CSV)',1,1,1,1],['Home-collection lookup',1,1,1,1],['Add / edit centre',1,1,0,0],['Delete centre',1,0,0,0],['Upload / replace Excel',1,0,0,0],['Service management',1,1,0,0],['Admin analytics & growth',1,1,0,0],['Manage roles',1,0,0,0]];
+  document.getElementById('roleBody').innerHTML=caps.map(r=>`<tr><td>${r[0]}</td>${r.slice(1).map(v=>`<td>${v?'<span class="cell-in">✓</span>':'<span class="cell-no">✕</span>'}</td>`).join('')}</tr>`).join('');
+}
+function renderSchema(){
+  document.getElementById('schemaCentre').textContent=JSON.stringify({sno:1,name:"String",city:"String",address:"String",pincode:"String",status:"String",nabl:"Boolean",iso:"Boolean",tmt:"IN|OUT|NA",ecg:"IN|OUT|NA",xray:"IN|OUT|NA",pft:"IN|OUT|NA",audiometry:"IN|OUT|NA",ultrasound:"IN|OUT|NA",echo:"IN|OUT|NA",sonomammography:"IN|OUT|NA",vaccination:"IN|NA",online_consult:"IN|NA",after_report:"IN|NA",spoc:"String",contact:"String",email:"String",location:"URL",lat:"Number",lng:"Number"},null,1);
+  document.getElementById('schemaPin').textContent=JSON.stringify({pin:"String",city:"String",state:"String",free:"Boolean",charge:"Number (0|500|1000)",localities:"String",lat:"Number",lng:"Number"},null,1);
+}
+function copySchema(which){navigator.clipboard.writeText(document.getElementById(which==='centre'?'schemaCentre':'schemaPin').textContent).then(()=>toast('Schema copied'));}
+function renderApiList(){
+  const items=[['FLABS / LIMS integration','Sync live service status & report-ready consults.'],['CRM System','Map SPOCs and empanelment status to CRM.'],['Real-time updates','Webhook on centre add/edit refreshes client portal.'],['Corporate / TPA / Insurer login','Role-based JWT, per-tenant scoping.'],['Home-collection routing','Assign phlebotomist by pincode & charge band.']];
+  document.getElementById('apiList').innerHTML=items.map((x,i)=>`<div class="rank-row"><div class="rank-n">${i+1}</div><div style="flex:1"><div style="font-weight:600;font-size:13.5px">${x[0]}</div><div class="muted" style="font-size:12px">${x[1]}</div></div></div>`).join('');
+}
+
+/* ---------- EXPORT ---------- */
+function exportTable(type){
+  if(type==='csv'){
+    const aoa=directoryAOA(CENTRES);
+    dl(new Blob([aoa.map(r=>r.map(x=>`"${(x==null?'':x).toString().replace(/"/g,'""')}"`).join(',')).join('\n')],{type:'text/csv'}),'Centre_Directory.csv');
+  } else if(type==='pdf'){
+    exportPDF('directory',CENTRES);
+  } else {
+    exportExcel(CENTRES,'Master_DB.xlsx');
+  }
+}
+
+/* ---------- ADMIN TABS ---------- */
+document.querySelectorAll('#adminTabs .tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('#adminTabs .tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');['upload','roles','schema','api'].forEach(id=>document.getElementById('t-'+id).style.display=id===t.dataset.t?'block':'none');});
+
+/* ---------- EXCEL RE-UPLOAD (rebuild master) ---------- */
+const COORDS={DELHI:[28.6139,77.209],'NEW DELHI':[28.6139,77.209],GURUGRAM:[28.4595,77.0266],GURGAON:[28.4595,77.0266],'GREATER NOIDA':[28.4744,77.504],NOIDA:[28.5355,77.391],'GAUTAM BUDDHA NAGAR':[28.5355,77.391],MEERUT:[28.9845,77.7064],FARIDABAD:[28.4089,77.3178],LUCKNOW:[26.8467,80.9462],AGRA:[27.1767,78.0081],ALIGARH:[27.8974,78.088],BULANDSHAHR:[28.4069,77.8498],ETAH:[27.5586,78.6628],GHAZIABAD:[28.6692,77.4538],KANPUR:[26.4499,80.3319],YAMUNANAGAR:[30.129,77.2674],'YAMUNA NAGAR':[30.129,77.2674],SAHARANPUR:[29.968,77.546],AMBALA:[30.3782,76.7767],HARIDWAR:[29.9457,78.1642],DEHRADUN:[30.3165,78.0322],'UDHAM SINGH NAGAR':[29.0,79.4]};
+const co=c=>COORDS[(c||'').toUpperCase()]||[28.6,77.2];
+const pc=v=>{if(v==null)return 'NA';const s=String(v).trim().toUpperCase();if(s.includes('NOT AVAILABLE')||s===''||s==='NA')return 'NA';if(s.includes('OUT'))return 'OUT';return 'IN';};
+function handleFile(file){
+  const reader=new FileReader();
+  reader.onload=e=>{try{
+    const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+    // DC sheet
+    const dcSheetName=wb.SheetNames.find(n=>n.toUpperCase().includes('DC'))||wb.SheetNames[0];
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets[dcSheetName],{header:1,defval:null});
+    let hr=rows.findIndex(r=>r&&r.some(c=>String(c).toUpperCase().includes('DC NAME')));
+    if(hr<0)throw new Error('Could not find a "DC NAME" header.');
+    // Detect layout: new file has a 'BMD' column and per-service cost columns.
+    const headRow=rows[hr].map(x=>String(x||'').toUpperCase());
+    const newLayout=headRow.some(h=>h.includes('BMD'))||headRow.some(h=>h.includes('OUTSOURCED'));
+    const out=[];let n=0;
+    for(let i=hr+1;i<rows.length;i++){const r=rows[i];if(!r)continue;const name=r[1],city=(r[2]||'').toString().trim();
+      if(!name||!city||/ESCLATION|ESCALATION|LEVEL/i.test(String(r[2])))continue;n++;
+      const g=pc(r[6]);const status=(r[5]||'').toString();const su=status.toUpperCase();const cc=co(city);
+      let usg,echo,sono,bmd,vac,con,usgC,echoC,sonoC,loc,spoc,contact,email;
+      if(newLayout){
+        usg=pc(r[7]);usgC=parseInt(r[8])||0;echo=pc(r[9]);echoC=parseInt(r[10])||0;sono=pc(r[11]);sonoC=parseInt(r[12])||0;
+        bmd=pc(r[13]);vac=pc(r[14]);con=pc(r[15]);loc=(r[16]||'').toString().trim();spoc=(r[17]||'').toString().trim();contact=(r[18]||'').toString();email=(r[19]||'').toString().trim();
+      }else{
+        const h=pc(r[7]);usg=h;echo=h;usgC=0;echoC=0;sono=pc(r[8]);sonoC=0;bmd='NA';vac=pc(r[9]);con=pc(r[10]);loc=(r[11]||'').toString().trim();spoc=(r[12]||'').toString().trim();contact=(r[13]||'').toString();email=(r[14]||'').toString().trim();
+      }
+      out.push({sno:r[0]||n,name:String(name).trim(),city:city.replace(/\b\w/g,m=>m.toUpperCase()),address:(r[3]||'').toString().trim(),pincode:(r[4]||'').toString(),status,nabl:su.includes('NABL'),iso:su.includes('ISO'),tmt:g,ecg:g,xray:g,pft:g,audiometry:g,papsmear:g,g_raw:(r[6]||'').toString(),ultrasound:usg,echo:echo,sonomammography:sono,bmd:bmd,h_raw:(r[7]||'').toString(),cost_ultrasound:usgC,cost_echo:echoC,cost_sonomammography:sonoC,vaccination:vac,online_consult:con,after_report:con,consultation:con,location:loc,spoc:spoc,contact:contact,email:email,lat:cc[0],lng:cc[1]});}
+    if(!out.length)throw new Error('No centre rows detected.');
+    // Home visit sheet
+    const hvName=wb.SheetNames.find(n=>/HOME|VISIT|PINCODE/i.test(n));
+    let pins=MASTER.pincodes;
+    if(hvName){const hr2=XLSX.utils.sheet_to_json(wb.Sheets[hvName],{header:1,defval:null});
+      let ph=hr2.findIndex(r=>r&&r.some(c=>String(c).toUpperCase()==='PINCODE'));if(ph<0)ph=2;
+      const pout=[];for(let i=ph+1;i<hr2.length;i++){const r=hr2[i];if(!r||r[0]==null)continue;const ch=r[3];const free=String(ch).trim().toLowerCase().startsWith('no');const cc=co((r[1]||'').toString().trim());
+        pout.push({pin:String(r[0]),city:(r[1]||'').toString().trim(),state:(r[2]||'').toString().trim(),free,charge:free?0:(parseInt(ch)||0),localities:(r[4]||'').toString().trim(),lat:cc[0],lng:cc[1]});}
+      if(pout.length)pins=pout;
+    }
+    MASTER.centres=out;MASTER.pincodes=pins;CENTRES=MASTER.centres;
+    saveNetworkState();refreshAll();
+    document.getElementById('uploadStatus').innerHTML=`<div class="pill"><span class="dot"></span>Loaded ${out.length} centres &amp; ${pins.length} pincodes — master DB refreshed.</div>`;
+    toast(`Imported ${out.length} centres, ${pins.length} pincodes`);
+  }catch(err){document.getElementById('uploadStatus').innerHTML=`<div class="note" style="background:#FBE9EC;border-color:#F2C5CD;color:#9A2435"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke="#B23B4E"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><div>${err.message}</div></div>`;}};
+  reader.readAsArrayBuffer(file);
+}
+document.getElementById('xlsInput').addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0]);});
+const dz=document.getElementById('dropZone');
+['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('drag');}));
+['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('drag');}));
+dz.addEventListener('drop',e=>{if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);});
+
+/* enter-key on finders */
+['homeInput'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter'){runHome();}}));
+
+/* ---------- REFRESH ALL ---------- */
+function safe(fn,label){try{fn();}catch(e){console.warn('[Dashboard] '+label+' skipped:',e&&e.message);}}
+function refreshAll(){
+  // Table + filters first and fault-isolated, so editing always works even if a chart/CDN fails.
+  safe(fillFilters,'filters');
+  safe(buildTable,'centre table');
+  safe(renderMatrix,'service matrix');
+  safe(renderHome,'home collection');
+  safe(renderOutsource,'outsource management');
+  safe(renderServiceMaster,'service master');
+  safe(renderKPIs,'KPIs');
+  safe(renderCityRank,'city ranking');
+  safe(overviewCharts,'overview charts');
+  safe(analyticsCharts,'analytics charts');
+  safe(renderCityTable,'city table');
+  if(mapInited)safe(drawLayers,'map layers');
+}
+renderRoles();renderSchema();renderApiList();
+refreshAll();
+// If jQuery/DataTables arrives after first paint (slow CDN), re-enhance the tables once ready.
+(function waitForJq(tries){
+  if(typeof $!=='undefined'&&$.fn&&$.fn.dataTable){
+    if(!dt)buildTable();
+    return;
+  }
+  if(tries>40)return; // ~10s; rows already render without DataTables
+  setTimeout(()=>waitForJq(tries+1),250);
+})(0);
+</script>
+</body></html>

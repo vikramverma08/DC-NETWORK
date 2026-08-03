@@ -1,0 +1,1163 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnostic Network — Coverage at a Glance</title>
+<meta name="description" content="The diagnostic network on one screen: centres, cities, pincodes, services, accreditation, home collection and online consultation — for corporate, insurer and TPA partners.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+:root{
+  --green:#16A34A;--green-deep:#0F7A37;--green-dark:#0A5A28;--green-soft:#E8F6EE;--green-tint:#F3FBF6;
+  --ink:#0B1A10;--slate:#586B5F;--line:#E2EAE4;--line-soft:#EEF3EF;--bg:#F7F9F7;--card:#fff;
+  --amber:#C8821A;--amber-soft:#FBF1E0;--blue:#2B5FA8;--blue-soft:#EAF1FB;--rose:#B23B4E;--rose-soft:#FBE9EC;
+  --forest:#0B2415;--forest2:#103620;
+  --shadow:0 1px 2px rgba(11,26,16,.04),0 10px 30px -16px rgba(11,26,16,.14);
+  --shadow-lg:0 30px 70px -28px rgba(11,26,16,.4);
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;font-family:'Inter',sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;font-size:14px;line-height:1.55}
+.mono{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}
+h1,h2,h3,h4{font-family:'Sora',sans-serif;margin:0;letter-spacing:-.02em}
+a{color:var(--green-deep);text-decoration:none}.muted{color:var(--slate)}
+.wrap{max-width:1320px;margin:0 auto;padding:0 24px}
+
+/* ===== HEADER BAND ===== */
+.band{background:radial-gradient(1200px 500px at 78% -10%,rgba(22,163,74,.32),transparent 60%),linear-gradient(165deg,var(--forest),var(--forest2));color:#EAF3EE;position:relative;overflow:hidden}
+.band::after{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.045) 1px,transparent 1px);background-size:22px 22px;opacity:.6;pointer-events:none}
+.topnav{display:flex;align-items:center;gap:14px;padding:18px 0;position:relative;z-index:2}
+.logo{display:flex;align-items:center;gap:12px}
+.mark{width:42px;height:42px;border-radius:12px;background:var(--green);display:grid;place-items:center;box-shadow:0 8px 22px -6px rgba(22,163,74,.8)}
+.mark svg{width:24px;height:24px}
+.logo b{font-family:'Sora';font-weight:700;font-size:18px;color:#fff;line-height:1.05;display:block}
+.logo small{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#84B79A}
+.topnav .spacer{flex:1}
+.asof{font-size:11.5px;color:#9CC6AC;font-family:'JetBrains Mono';display:flex;align-items:center;gap:7px}
+.asof .live{width:7px;height:7px;border-radius:50%;background:#4ADE80;box-shadow:0 0 0 3px rgba(74,222,128,.25);animation:pulse 2.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.exportbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:0 0 18px;position:relative;z-index:3}
+.exportbar-label{font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#7FA98D;margin-right:4px}
+.xbar-div{width:1px;height:22px;background:rgba(255,255,255,.15);margin:0 2px}
+.xbtn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:10px;font-weight:600;font-size:12.5px;cursor:pointer;font-family:'Inter';transition:.15s;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);color:#EAF3EE}
+.xbtn svg{width:15px;height:15px}
+.xbtn:hover{background:rgba(255,255,255,.12);transform:translateY(-1px)}
+.xbtn.pdf:hover{border-color:#F0A8A8;color:#fff}
+.xbtn.xls{border-color:rgba(74,222,128,.35)}
+.xbtn.xls:hover{background:rgba(22,163,74,.25);border-color:#4ADE80;color:#fff}
+
+.hero{position:relative;z-index:2;padding:26px 0 30px;display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center}
+.hero .eyebrow{font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#7FE6A6;display:flex;align-items:center;gap:9px}
+.hero .eyebrow::before{content:"";width:26px;height:2px;background:#7FE6A6;border-radius:2px}
+.hero h1{font-size:40px;line-height:1.06;color:#fff;margin:14px 0 0;letter-spacing:-.03em}
+.hero h1 .hl{color:#7FE6A6}
+.hero p{color:#B6D4C2;font-size:15px;margin:14px 0 0;max-width:520px}
+.actions{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap}
+.cta{display:inline-flex;align-items:center;gap:9px;padding:14px 22px;border-radius:13px;font-weight:600;font-size:14.5px;cursor:pointer;border:1px solid transparent;transition:.16s;font-family:'Inter'}
+.cta svg{width:18px;height:18px}
+.cta.primary{background:var(--green);color:#fff;box-shadow:0 14px 30px -12px rgba(22,163,74,.9)}
+.cta.primary:hover{background:#19B554;transform:translateY(-2px)}
+.cta.ghost{background:rgba(255,255,255,.06);color:#fff;border-color:rgba(255,255,255,.2)}
+.cta.ghost:hover{background:rgba(255,255,255,.12)}
+
+/* signature: instrument cluster (radial coverage gauges) */
+.cluster{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:22px;backdrop-filter:blur(6px)}
+.cluster-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.cluster-h b{color:#fff;font-family:'Sora';font-size:14px;font-weight:600}
+.cluster-h span{font-size:11px;color:#84B79A;font-family:'JetBrains Mono'}
+.gauges{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.gauge{text-align:center}
+.gauge .ring{position:relative;width:96px;height:96px;margin:0 auto}
+.gauge svg{transform:rotate(-90deg)}
+.gauge .gv{position:absolute;inset:0;display:grid;place-items:center;flex-direction:column}
+.gauge .gv b{font-family:'Sora';font-weight:800;font-size:22px;color:#fff;line-height:1}
+.gauge .gv small{font-size:9px;color:#84B79A;letter-spacing:.05em}
+.gauge .gl{font-size:11px;color:#B6D4C2;margin-top:9px;font-weight:600}
+
+/* ===== STAT STRIP ===== */
+.strip{position:relative;z-index:3;margin-top:-30px}
+.statcard{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);display:grid;grid-template-columns:repeat(7,1fr)}
+.stat{padding:20px 16px;border-right:1px solid var(--line-soft);position:relative}
+.stat:last-child{border-right:none}
+.stat .ic{width:34px;height:34px;border-radius:10px;background:var(--green-soft);display:grid;place-items:center;margin-bottom:11px}
+.stat .ic svg{width:17px;height:17px;stroke:var(--green-deep)}
+.stat .n{font-family:'Sora';font-weight:800;font-size:27px;line-height:1;letter-spacing:-.03em}
+.stat .l{font-size:11px;color:var(--slate);margin-top:5px;font-weight:600;line-height:1.3}
+.stat.alt .ic{background:var(--blue-soft)}.stat.alt .ic svg{stroke:var(--blue)}
+.stat.alt2 .ic{background:var(--amber-soft)}.stat.alt2 .ic svg{stroke:var(--amber)}
+
+/* ===== SECTION ===== */
+section{padding:44px 0}
+.shead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+.shead .eyebrow{font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--green);display:flex;align-items:center;gap:8px}
+.shead .eyebrow::before{content:"";width:22px;height:2px;background:var(--green);border-radius:2px}
+.shead h2{font-size:26px;font-weight:700;margin-top:8px;color:var(--ink)}
+.shead p{color:var(--slate);font-size:13.5px;margin:6px 0 0;max-width:560px}
+
+/* ===== HOME COLLECTION FLAGSHIP HERO ===== */
+.hc-hero{position:relative;overflow:hidden;border-radius:24px;background:linear-gradient(120deg,#0B2415 0%,#0F7A37 130%);box-shadow:0 30px 70px -28px rgba(11,26,16,.5);display:grid;grid-template-columns:1.15fr .85fr;gap:0}
+.hc-bg-grid{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.06) 1.2px,transparent 1.2px);background-size:24px 24px;opacity:.7;pointer-events:none}
+.hc-hero::after{content:"";position:absolute;right:-100px;top:-120px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(74,222,128,.32),transparent 65%);pointer-events:none}
+.hc-left{padding:38px 40px;position:relative;z-index:2}
+.hc-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);color:#fff;padding:8px 15px;border-radius:999px;font-weight:700;font-size:13px;margin-bottom:18px}
+.hc-house{font-size:16px}
+.hc-eyebrow{font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#7FE6A6;margin-bottom:8px}
+.hc-title{font-size:36px;line-height:1.05;color:#fff;margin:0;letter-spacing:-.03em}
+.hc-lead{color:#C6E3D2;font-size:15px;margin:14px 0 0;max-width:440px;line-height:1.5}
+.hc-feats{display:grid;grid-template-columns:1fr 1fr;gap:9px 16px;margin:22px 0 24px;max-width:480px}
+.hc-feat{display:flex;align-items:center;gap:9px;color:#EAF3EE;font-size:12.5px;font-weight:500}
+.hc-feat .hk{width:20px;height:20px;border-radius:6px;background:rgba(74,222,128,.22);display:grid;place-items:center;flex:none}
+.hc-feat .hk svg{width:12px;height:12px;stroke:#7FE6A6}
+.hc-cta{box-shadow:0 14px 30px -12px rgba(74,222,128,.7)}
+.hc-right{position:relative;z-index:2;padding:34px 30px;display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:min-content;gap:14px;align-content:center;border-left:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03)}
+.hc-stat{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.13);border-radius:15px;padding:16px 16px;backdrop-filter:blur(4px)}
+.hc-stat .hcn{font-family:'Sora';font-weight:800;font-size:30px;line-height:1;color:#fff;letter-spacing:-.03em}
+.hc-stat .hcl{font-size:11px;color:#AECbBA;margin-top:6px;font-weight:600;line-height:1.3}
+.hc-stat.feat{background:linear-gradient(135deg,rgba(74,222,128,.28),rgba(74,222,128,.08));border-color:rgba(74,222,128,.4)}
+.hc-stat.feat .hcn{color:#9FF5BE}
+@media(max-width:980px){.hc-hero{grid-template-columns:1fr}.hc-right{border-left:none;border-top:1px solid rgba(255,255,255,.1)}.hc-title{font-size:30px}}
+@media(max-width:560px){.hc-feats{grid-template-columns:1fr}.hc-right{grid-template-columns:1fr 1fr}.hc-left{padding:26px 22px}}
+.exec-msg{display:flex;gap:13px;align-items:flex-start;margin-top:18px;background:#fff;border:1px solid var(--line);border-left:4px solid var(--green);border-radius:14px;padding:16px 20px}
+.exec-msg svg{width:22px;height:22px;stroke:var(--green);flex:none;margin-top:2px}
+.exec-msg p{margin:0;font-size:14.5px;line-height:1.55;color:var(--ink)}
+.exec-msg b{color:var(--green-deep)}
+.hc-tag{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#0F7A37,#16A34A);color:#fff;font-size:11px;font-weight:700;padding:4px 11px;border-radius:999px;letter-spacing:.01em;box-shadow:0 4px 12px -4px rgba(15,122,55,.5)}
+.hc-tag.lg{font-size:12.5px;padding:6px 14px}
+.out-tag{display:inline-flex;align-items:center;gap:5px;background:var(--amber-soft);color:#9A6B12;border:1px solid #F0DCB4;font-size:11px;font-weight:700;padding:4px 11px;border-radius:999px;cursor:help}
+
+/* ===== SERVICE COVERAGE MATRIX (signature centerpiece) ===== */
+.svc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(186px,1fr));gap:14px}
+.svc{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:16px;position:relative;overflow:hidden;transition:.18s;cursor:default}
+.svc:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:#CDEAD8}
+.svc .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}
+.svc .sic{width:36px;height:36px;border-radius:10px;background:var(--green-soft);display:grid;place-items:center}
+.svc .sic svg{width:18px;height:18px;stroke:var(--green-deep);fill:none}
+.svc .pct{font-family:'JetBrains Mono';font-weight:700;font-size:13px;color:var(--green-deep);background:var(--green-soft);padding:3px 8px;border-radius:7px}
+.svc h4{font-size:14.5px;font-weight:600;color:var(--ink)}
+.svc .meta{font-size:11.5px;color:var(--slate);margin-top:4px}
+.svc .barb{height:6px;background:var(--line-soft);border-radius:4px;margin-top:12px;overflow:hidden}
+.svc .barf{height:100%;background:linear-gradient(90deg,var(--green),#34D17F);border-radius:4px;width:0;transition:width 1s cubic-bezier(.2,.8,.2,1)}
+.svc.network{background:linear-gradient(135deg,var(--green-tint),#fff);border-color:#CDEAD8}
+.svc.network .pct{background:var(--green);color:#fff}
+.svc.cap .sic{background:var(--blue-soft)}.svc.cap .sic svg{stroke:var(--blue)}
+.svc.cap .pct{background:var(--blue-soft);color:var(--blue)}
+.tagrow{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:600;color:var(--blue);background:var(--blue-soft);padding:3px 8px;border-radius:6px;margin-top:10px}
+
+/* ===== ACCREDITATION + HOME + ONLINE row ===== */
+.trio{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:18px}
+.bigcard{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:22px;position:relative;overflow:hidden}
+.bigcard .ch{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.bigcard .ch .ci{width:38px;height:38px;border-radius:11px;display:grid;place-items:center}
+.bigcard .ch h3{font-size:15.5px;font-weight:600}
+.accbars{display:flex;flex-direction:column;gap:13px}
+.accrow{display:flex;align-items:center;gap:12px}
+.accrow .al{width:118px;font-size:12.5px;font-weight:600;flex:none}
+.accrow .ab{flex:1;height:10px;background:var(--line-soft);border-radius:6px;overflow:hidden}
+.accrow .af{height:100%;border-radius:6px;width:0;transition:width 1s cubic-bezier(.2,.8,.2,1)}
+.accrow .av{font-family:'JetBrains Mono';font-weight:700;font-size:13px;width:30px;text-align:right}
+.cov-visual{display:flex;align-items:baseline;gap:8px;margin:6px 0 2px}
+.cov-visual .big{font-family:'Sora';font-weight:800;font-size:40px;letter-spacing:-.03em;color:var(--green-deep)}
+.cov-visual .unit{font-size:13px;color:var(--slate);font-weight:600}
+.minigrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.mini{background:var(--green-tint);border:1px solid var(--line-soft);border-radius:11px;padding:11px 13px}
+.mini .mn{font-family:'Sora';font-weight:700;font-size:19px;color:var(--ink)}
+.mini .ml{font-size:10.5px;color:var(--slate);font-weight:600;margin-top:2px}
+.avail-pill{display:inline-flex;align-items:center;gap:7px;background:var(--green-soft);color:var(--green-deep);padding:7px 13px;border-radius:999px;font-weight:600;font-size:12.5px;border:1px solid #CDEAD8;margin-bottom:6px}
+.avail-pill .d{width:7px;height:7px;border-radius:50%;background:var(--green)}
+.feat-list{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.feat{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:500}
+.feat .fk{width:22px;height:22px;border-radius:7px;background:var(--green-soft);display:grid;place-items:center;flex:none}
+.feat .fk svg{width:13px;height:13px;stroke:var(--green-deep)}
+
+/* ===== MAP + FINDER ===== */
+.map-shell{display:grid;grid-template-columns:340px 1fr;gap:0;background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);overflow:hidden}
+.map-side{padding:22px;border-right:1px solid var(--line-soft);display:flex;flex-direction:column}
+.finder-in{display:flex;gap:8px;margin-bottom:8px}
+.finder-in input{flex:1;padding:12px 14px;border:1px solid var(--line);border-radius:11px;font-size:14px;font-family:'JetBrains Mono';color:var(--ink)}
+.finder-in input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(22,163,74,.13)}
+.finder-in button{padding:12px 16px;border-radius:11px;background:var(--green);color:#fff;border:none;font-weight:600;cursor:pointer;font-size:13px}
+.finder-in button:hover{background:var(--green-deep)}
+.chiprow{display:flex;flex-wrap:wrap;gap:7px;margin:4px 0 8px}
+.chip{font-size:11px;font-weight:600;padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--slate);cursor:pointer;transition:.14s}
+.chip:hover{border-color:var(--green);color:var(--green-deep)}
+.layer-toggles{display:flex;gap:7px;margin-top:14px;flex-wrap:wrap}
+.lt{font-size:11px;font-weight:600;padding:6px 11px;border-radius:8px;border:1px solid var(--line);cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.14s}
+.lt .ld{width:9px;height:9px;border-radius:3px}
+.lt.off{opacity:.45}
+.findlist{margin-top:16px;overflow:auto;flex:1;min-height:0}
+.fl-card{border:1px solid var(--line);border-radius:12px;padding:13px;margin-bottom:10px;cursor:pointer;transition:.14s}
+.fl-card:hover{border-color:var(--green);background:var(--green-tint);transform:translateX(2px)}
+.fl-card .fln{font-family:'Sora';font-weight:600;font-size:13.5px}
+.fl-card .fld{font-size:11.5px;color:var(--slate);margin-top:3px}
+.fl-card .fld b{color:var(--green-deep);font-family:'JetBrains Mono'}
+.fl-card .fl-hours{font-size:10.5px;color:var(--green-deep);font-weight:600;margin-top:5px;display:flex;align-items:center}
+#map{height:560px;width:100%;z-index:1}
+.leaflet-popup-content-wrapper{border-radius:13px;box-shadow:var(--shadow-lg)}
+.leaflet-popup-content{margin:14px 16px;font-family:'Inter'}
+.pop-name{font-family:'Sora';font-weight:700;font-size:14px;margin-bottom:3px}
+.pop-meta{font-size:12px;color:var(--slate);margin-bottom:8px;line-height:1.45}
+.pop-hours{font-size:11px;color:var(--green-deep);font-weight:600;background:var(--green-soft);border-radius:7px;padding:4px 8px;margin-bottom:6px;display:inline-block}
+.pop-svcs{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0}
+.pop-chip{font-size:10px;font-weight:600;background:var(--green-soft);color:var(--green-deep);padding:2px 7px;border-radius:6px}
+.pop-btns{display:flex;gap:6px;margin-top:9px}
+.pop-btns a,.pop-btns button{flex:1;text-align:center;font-size:11px;font-weight:600;padding:7px;border-radius:8px;background:var(--green);color:#fff;border:none;cursor:pointer}
+.pop-btns .alt{background:var(--green-soft);color:var(--green-deep)}
+.mk{width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2.5px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,.3);display:grid;place-items:center}
+.mk b{transform:rotate(45deg);color:#fff;font-size:10.5px;font-weight:700;font-family:'Sora'}
+.mk.dc{background:var(--green)}.mk.hv{background:var(--amber)}
+.mk.dc.hc{background:var(--green);box-shadow:0 0 0 3px rgba(200,130,26,.55),0 3px 8px rgba(0,0,0,.3)}
+.pop-hc{display:inline-flex;align-items:center;gap:5px;margin:6px 0 2px;background:linear-gradient(135deg,#0F7A37,#16A34A);color:#fff;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px}
+.hc-dot{font-size:12px}
+
+/* ===== DIRECTORY STRIP (compact, all centres visible) ===== */
+.dir-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.dc-card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:17px;box-shadow:var(--shadow);transition:.16s;cursor:pointer}
+.dc-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:#CDEAD8}
+.dc-card .dt{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.dc-card .dn{font-family:'Sora';font-weight:700;font-size:14.5px;line-height:1.2}
+.dc-card .dcity{font-size:11.5px;color:var(--slate);margin-top:3px;display:flex;align-items:center;gap:5px}
+.badge-c{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:7px;font-size:10px;font-weight:700;white-space:nowrap}
+.b-nabl{background:var(--green-soft);color:var(--green-deep)}.b-iso{background:var(--blue-soft);color:var(--blue)}.b-both{background:linear-gradient(90deg,var(--green-soft),var(--blue-soft));color:#246b4d}
+.dc-card .svcs{display:flex;flex-wrap:wrap;gap:5px;margin-top:13px}
+.dc-card .dc-hours{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--green-deep);font-weight:600;margin-top:11px}
+.dc-card .dc-hours svg{stroke:var(--green-deep)}
+.dc-card .sv{font-size:10px;font-weight:600;padding:3px 8px;border-radius:6px;background:var(--green-tint);color:var(--green-deep);border:1px solid var(--line-soft)}
+.dc-card .foot{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:13px;border-top:1px solid var(--line-soft)}
+.dc-card .foot a{font-size:12px;font-weight:600}
+.searchbar{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
+.searchbar input,.searchbar select{padding:10px 13px;border:1px solid var(--line);border-radius:11px;font-size:13px;font-family:'Inter';background:#fff}
+.searchbar input{flex:1;min-width:220px}
+.searchbar input:focus,.searchbar select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(22,163,74,.13)}
+
+/* ===== FOOTER ===== */
+.foot-band{background:var(--forest);color:#9CC6AC;padding:32px 0;margin-top:30px}
+.foot-band .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
+.foot-band b{color:#fff;font-family:'Sora'}
+.esc{display:flex;gap:22px;flex-wrap:wrap}
+.esc div{font-size:12px}.esc div b{display:block;color:#fff;font-size:13px}
+.esc a{color:#7FE6A6}
+
+/* ===== DRILL-DOWN MODAL (center profile — the only drill-down) ===== */
+.modal-bg{position:fixed;inset:0;background:rgba(11,26,16,.6);backdrop-filter:blur(5px);z-index:300;display:none;align-items:flex-start;justify-content:center;padding:30px 20px;overflow:auto}
+.modal-bg.show{display:flex}
+.profile{background:#fff;border-radius:22px;width:100%;max-width:760px;box-shadow:var(--shadow-lg);overflow:hidden;animation:pop .3s ease}
+@keyframes pop{from{opacity:0;transform:scale(.96) translateY(10px)}to{opacity:1;transform:none}}
+.profile-h{background:radial-gradient(600px 200px at 90% -40%,rgba(22,163,74,.3),transparent),linear-gradient(150deg,var(--forest),var(--forest2));color:#fff;padding:26px 28px;position:relative}
+.profile-h .x{position:absolute;top:18px;right:18px;width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);color:#fff;display:grid;place-items:center;cursor:pointer;font-size:16px}
+.profile-h .x:hover{background:rgba(255,255,255,.22)}
+.profile-h .pcity{font-size:12px;color:#9CC6AC;font-weight:600;letter-spacing:.03em;display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.profile-h h2{color:#fff;font-size:23px;max-width:90%}
+.profile-h .pacc{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.profile-b{padding:26px 28px}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px}
+.pinfo{display:flex;gap:11px;align-items:flex-start}
+.pinfo .pk{width:34px;height:34px;border-radius:10px;background:var(--green-soft);display:grid;place-items:center;flex:none}
+.pinfo .pk svg{width:16px;height:16px;stroke:var(--green-deep)}
+.pinfo .pv b{font-size:11px;color:var(--slate);font-weight:600;text-transform:uppercase;letter-spacing:.04em;display:block}
+.pinfo .pv span{font-size:13.5px;font-weight:500}
+.psvc-title{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--slate);margin:4px 0 12px}
+.psec-label{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--green-deep);margin:22px 0 12px;padding-bottom:7px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:8px}
+.psec-label:first-child{margin-top:0}
+.days-badge{display:inline-flex;align-items:center;gap:5px;background:var(--green-soft);color:var(--green-deep);border:1px solid rgba(22,163,74,.25);font-size:12px;font-weight:700;padding:5px 12px;border-radius:999px}
+.days-badge.alt{background:#FFF7E8;color:#9A6B12;border-color:#F0DCB4}
+.op-band{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:6px}
+.op-item{display:flex;align-items:center;gap:12px;background:var(--green-tint);border:1px solid var(--line-soft);border-radius:13px;padding:13px 16px}
+.op-ic{width:38px;height:38px;border-radius:11px;background:#fff;border:1px solid var(--line);display:grid;place-items:center;flex:none}
+.op-ic svg{width:19px;height:19px;stroke:var(--green-deep)}
+.op-item b{display:block;font-size:14px;color:var(--ink)}
+.op-item span{font-size:11.5px;color:var(--slate)}
+.cov-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.cov-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;text-align:center}
+.cov-card.hc{background:linear-gradient(135deg,#F0FAF3,#E3F5EA);border-color:rgba(22,163,74,.3)}
+.cov-card .cvn{font-family:'Sora';font-weight:800;font-size:28px;color:var(--green-deep);line-height:1}
+.cov-card .cvl{font-size:11px;color:var(--slate);margin-top:6px;font-weight:600;line-height:1.3}
+.pin-wrap{background:var(--green-tint);border:1px solid var(--line-soft);border-radius:14px;padding:16px 18px;margin-bottom:6px}
+.pin-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.pin-head b{font-size:13.5px;color:var(--ink)}
+.pin-legend{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--slate)}
+.pin-list{display:flex;flex-wrap:wrap;gap:7px;max-height:200px;overflow:auto}
+.pin-chip{display:inline-flex;align-items:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;padding:5px 11px;border-radius:8px;border:1px solid}
+.pin-chip.free{background:#fff;color:var(--green-deep);border-color:rgba(22,163,74,.35)}
+.pin-chip.paid{background:#FFF7E8;color:#9A6B12;border-color:#F0DCB4}
+.pin-chip.mini{padding:0;width:14px;height:14px;border-radius:4px}
+.net-intel{display:flex;gap:12px;align-items:flex-start;background:#0B2415;border-radius:13px;padding:15px 18px;margin:18px 0 4px}
+.net-intel svg{width:20px;height:20px;stroke:#7FE6A6;flex:none;margin-top:1px}
+.net-intel p{margin:0;font-size:13px;line-height:1.55;color:#D6EBDD}
+.net-intel b{color:#9FF5BE}
+/* Outsourced Service Pricing card */
+.op-card{background:#fff;border:1px solid var(--line);border-top:4px solid var(--amber);border-radius:18px;padding:24px 26px;box-shadow:var(--shadow)}
+.op-card-head{display:flex;align-items:center;gap:13px;margin-bottom:18px}
+.op-card-ic{width:44px;height:44px;border-radius:12px;background:var(--amber-soft);display:grid;place-items:center;color:var(--amber);flex:none}
+.op-price-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:16px}
+.op-price{border:1px solid var(--line);border-radius:14px;padding:16px 18px;background:linear-gradient(135deg,#FFFBF3,#FFF6E6);position:relative;overflow:hidden}
+.op-price .opn{font-size:14px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:7px}
+.op-price .opn::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--amber);flex:none}
+.op-price .opc{font-family:'Sora';font-weight:800;font-size:26px;color:#B9710D;margin-top:8px;line-height:1}
+.op-price .opx{font-size:11px;color:var(--slate);margin-top:5px;font-weight:600}
+.op-price .optag{position:absolute;top:12px;right:12px;font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--amber);background:#fff;border:1px solid #F0DCB4;padding:3px 8px;border-radius:6px}
+.op-note{display:flex;gap:10px;align-items:flex-start;background:var(--amber-soft);border:1px solid #F0DCB4;border-radius:12px;padding:12px 15px;color:#8A5E10}
+.op-note svg{flex:none;margin-top:1px;stroke:#B9710D}
+.op-note span{font-size:13px;line-height:1.5}
+.op-note b{color:#7A4F0A}
+@media(max-width:560px){.op-band,.cov-cards{grid-template-columns:1fr}.cov-cards{grid-template-columns:1fr 1fr}}
+/* Profile: outsourced services table */
+.out-table{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:8px}
+.out-row{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:10px;padding:12px 16px;align-items:center;border-bottom:1px solid var(--line-soft)}
+.out-row:last-child{border-bottom:none}
+.out-head{background:#0B2415;color:#fff;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.out-row:not(.out-head):nth-child(even){background:#FFFBF3}
+.out-svc{font-weight:700;font-size:13.5px;color:var(--ink)}
+.pill-out{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;color:#9A6B12;background:var(--amber-soft);border:1px solid #F0DCB4;padding:3px 9px;border-radius:999px}
+.out-charge{font-family:'Sora';font-weight:800;font-size:15px;color:#C2410C}
+.out-pay{display:flex;gap:9px;align-items:flex-start;background:#FEF2F2;border:1px solid #FBD5D5;border-radius:11px;padding:11px 14px;margin-bottom:6px}
+.out-pay svg{flex:none;margin-top:1px;stroke:#C2410C}
+.out-pay span{font-size:12.5px;line-height:1.5;color:#9B2C2C}
+.out-pay b{color:#7F1D1D}
+.all-inhouse{background:var(--green-soft);border:1px solid rgba(22,163,74,.25);border-radius:11px;padding:12px 15px;font-size:13px;color:var(--green-deep);line-height:1.5}
+.all-inhouse b{color:var(--green-deep)}
+.psvc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:9px;margin-bottom:20px}
+.psvc{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:11px;border:1px solid var(--line);font-size:12.5px;font-weight:500}
+.psvc.in{background:var(--green-tint);border-color:#CDEAD8}
+.psvc.out{background:var(--amber-soft);border-color:#F0DCB4}
+.psvc.no{opacity:.5}
+.psvc .pi{width:18px;height:18px;border-radius:6px;display:grid;place-items:center;flex:none;font-size:11px;font-weight:700}
+.psvc.in .pi{background:var(--green);color:#fff}.psvc.out .pi{background:var(--amber);color:#fff}.psvc.no .pi{background:#D5DDD8;color:#fff}
+.svc-charge{font-family:'Sora';font-weight:800;font-size:11px;color:#C2410C;margin-left:2px}
+.psvc.out{cursor:help}
+.pcta{display:flex;gap:10px;flex-wrap:wrap}
+.pcta a{flex:1;min-width:140px;text-align:center;padding:12px;border-radius:12px;font-weight:600;font-size:13px}
+.pcta .a1{background:var(--green);color:#fff}.pcta .a2{background:var(--green-soft);color:var(--green-deep)}
+
+.note{background:var(--amber-soft);border:1px solid #F0DCB4;border-radius:13px;padding:14px 16px;font-size:12.5px;color:#80591A;display:flex;gap:11px;align-items:flex-start;margin-top:18px}
+.note svg{width:18px;height:18px;flex:none;stroke:var(--amber);margin-top:1px}
+
+@media(max-width:1080px){
+  .hero{grid-template-columns:1fr;gap:26px}
+  .statcard{grid-template-columns:repeat(4,1fr)}
+  .stat:nth-child(4){border-right:none}
+  .trio{grid-template-columns:1fr}
+  .map-shell{grid-template-columns:1fr}.map-side{border-right:none;border-bottom:1px solid var(--line-soft)}
+  #map{height:440px}
+}
+@media(max-width:680px){
+  .hero h1{font-size:30px}
+  .statcard{grid-template-columns:repeat(2,1fr)}
+  .stat{border-right:none}
+  .gauges{grid-template-columns:repeat(3,1fr)}
+  .pgrid,.psvc-grid{grid-template-columns:1fr 1fr}
+  .topnav .asof{display:none}
+  section{padding:32px 0}
+}
+</style></head><body>
+
+<!-- ===== HEADER + HERO + GAUGES ===== -->
+<div class="band">
+  <div class="wrap">
+    <div class="topnav">
+      <div class="logo"><div class="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.35-7-10a4 4 0 0 1 7-2.65A4 4 0 0 1 19 11c0 5.65-7 10-7 10Z" fill="#fff"/><path d="M9.2 11.2h1.6l.7-2 1.2 4 .9-2h1.4" stroke="#16A34A" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><b>Diagnostic Network</b><small>Diagnostic Network</small></div></div>
+      <div class="spacer"></div>
+      <div class="asof"><span class="live"></span><span id="asofTxt">Coverage as on 08 Jun 2026</span></div>
+    </div>
+    <div class="exportbar">
+      <span class="exportbar-label">Export</span>
+      <button class="xbtn pdf" onclick="exportDashboardPDF()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 9V3h12v6M6 18H4v-6h16v6h-2M8 14h8v7H8z"/></svg>Complete Dashboard PDF</button>
+      <button class="xbtn pdf" onclick="exportPDF('coverage')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 11l9-7 9 7M5 10v10h14V10"/></svg>Coverage PDF</button>
+      <button class="xbtn pdf" onclick="exportPDF('service')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg>Service Matrix PDF</button>
+      <span class="xbar-div"></span>
+      <button class="xbtn xls" onclick="exportExcel(null,'Centre_Directory.xlsx')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 8l6 8M15 8l-6 8"/></svg>Centres Excel</button>
+      <button class="xbtn xls" onclick="exportCoverageExcel()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 8l6 8M15 8l-6 8"/></svg>Coverage Excel</button>
+      <button class="xbtn xls" onclick="exportServiceExcel()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 8l6 8M15 8l-6 8"/></svg>Service Availability Excel</button>
+    </div>
+    <div class="hero">
+      <div>
+        <div class="eyebrow">National diagnostic coverage</div>
+        <h1>Our entire network,<br><span class="hl">on one screen.</span></h1>
+        <p>Centres, cities, pincodes, services, accreditation, home collection and online consultation — everything a partner needs to assess our coverage, without clicking through menus.</p>
+        <div class="actions">
+          <button class="cta primary" onclick="scrollTo2('finder')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg>Find a centre</button>
+          <button class="cta ghost" onclick="scrollTo2('coverage')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l3-4 3 2 5-7"/></svg>View network coverage</button>
+        </div>
+      </div>
+      <div class="cluster">
+        <div class="cluster-h"><b>Live service coverage</b><span id="clusterPct">network-wide</span></div>
+        <div class="gauges" id="gauges"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== STAT STRIP ===== -->
+<div class="wrap strip">
+  <div class="statcard" id="statStrip"></div>
+</div>
+
+<!-- ===== HOME COLLECTION FLAGSHIP HERO ===== -->
+<div class="wrap">
+  <section id="homehero" style="padding-top:36px">
+    <div class="hc-hero">
+      <div class="hc-bg-grid"></div>
+      <div class="hc-left">
+        <div class="hc-badge"><span class="hc-house">🏠</span>Home Collection Available</div>
+        <div class="hc-eyebrow">Flagship service</div>
+        <h2 class="hc-title">Nationwide Home<br>Collection Network</h2>
+        <p class="hc-lead">Thousands of home visits supported across multiple cities — doorstep diagnostics for individuals, corporates and insurance partners.</p>
+        <div class="hc-feats" id="hcFeats"></div>
+        <button class="cta primary hc-cta" onclick="scrollTo2('finder')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7M5 10v10h14V10"/><path d="M9 21v-6h6v6"/></svg>Check home-collection coverage</button>
+      </div>
+      <div class="hc-right" id="hcStats"></div>
+    </div>
+    <div class="exec-msg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/></svg><p>Our network not only provides diagnostic centre services but also offers extensive home collection support across covered cities and pincodes, enabling convenient healthcare access for <b>individuals, corporates and insurance partners.</b></p></div>
+  </section>
+</div>
+
+<div class="wrap">
+
+  <!-- ===== SERVICE COVERAGE MATRIX ===== -->
+  <section id="coverage">
+    <div class="shead"><div><div class="eyebrow">Service coverage matrix</div><h2>What we provide, and where</h2><p>Every major service with live centre counts, cities covered and network coverage — no separate module to open.</p></div>
+      <div class="btn-row" style="display:flex;gap:9px;flex-wrap:wrap">
+        <button class="cta ghost" style="padding:10px 16px;font-size:13px;background:#fff;color:var(--ink);border:1px solid var(--line)" onclick="exportServiceExcel()"><svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 8l6 8M15 8l-6 8"/></svg>Service Excel</button>
+        <button class="cta primary" style="padding:10px 16px;font-size:13px" onclick="exportPDF('service')"><svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9V3h12v6M6 18H4v-6h16v6h-2M8 14h8v7H8z"/></svg>Service PDF</button>
+      </div></div>
+    <div class="svc-grid" id="svcGrid"></div>
+    <div class="note"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+      <div>Counts come straight from the network register. Cardiac &amp; pathology services (TMT, ECG, X-Ray, PFT, Audiometry) share one in-house status per centre in the source data; Ultrasound &amp; 2D Echo share another. Health check-ups, insurance medicals and corporate camps are <b>network-wide capabilities</b> coordinated centrally rather than per-centre toggles, so they’re shown as capability badges, not counts.</div></div>
+  </section>
+
+  <!-- ===== OUTSOURCED SERVICE PRICING ===== -->
+  <section id="outpricing" style="padding-top:8px">
+    <div class="op-card">
+      <div class="op-card-head">
+        <div class="op-card-ic"><svg viewBox="0 0 24 24" width="20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <div><div class="eyebrow" style="color:var(--amber)">Pricing transparency</div><h2 style="margin:2px 0 0">Outsourced Service Pricing</h2></div>
+      </div>
+      <div class="op-price-grid" id="outPriceGrid"></div>
+      <div class="op-note"><svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span>Additional charges apply <b>only where services are outsourced</b> and not available in-house. For outsourced services, payment must be received before report release.</span></div>
+    </div>
+  </section>
+
+  <!-- ===== ACCREDITATION + HOME + ONLINE ===== -->
+  <section style="padding-top:8px">
+    <div class="trio">
+      <div class="bigcard">
+        <div class="ch"><div class="ci" style="background:var(--green-soft)"><svg viewBox="0 0 24 24" width="19" fill="none" stroke="var(--green-deep)" stroke-width="1.8"><path d="M12 2 4 6v6c0 5 8 8 8 8s8-3 8-8V6Z"/><path d="m9 12 2 2 4-4"/></svg></div><h3>Quality &amp; accreditation</h3></div>
+        <div class="accbars" id="accBars"></div>
+        <div class="minigrid" id="accMini"></div>
+      </div>
+      <div class="bigcard">
+        <div class="ch"><div class="ci" style="background:var(--amber-soft)"><svg viewBox="0 0 24 24" width="19" fill="none" stroke="var(--amber)" stroke-width="1.8"><path d="M3 11l9-7 9 7M5 10v10h14V10"/><path d="M9 21v-6h6v6"/></svg></div><h3>Home collection</h3></div>
+        <div class="avail-pill"><span class="d"></span>Available across the network</div>
+        <div class="cov-visual"><span class="big" id="hvBig">0</span><span class="unit">serviceable pincodes</span></div>
+        <div class="minigrid" id="hvMini"></div>
+      </div>
+      <div class="bigcard">
+        <div class="ch"><div class="ci" style="background:var(--green-soft)"><svg viewBox="0 0 24 24" width="19" fill="none" stroke="var(--green-deep)" stroke-width="1.8"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div><h3>Online consultation</h3></div>
+        <div class="avail-pill"><span class="d"></span>Teleconsultation enabled</div>
+        <div class="feat-list" id="onlineFeat"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== MAP + FINDER ===== -->
+  <section id="finder">
+    <div class="shead"><div><div class="eyebrow">Coverage map &amp; centre finder</div><h2>Find the nearest centre</h2><p>Search by pincode or city. Results rank by proximity; click any centre — on the list or the map — for its full profile.</p></div></div>
+    <div class="map-shell">
+      <div class="map-side">
+        <div class="finder-in"><input id="findInput" placeholder="Pincode or city…" autocomplete="off"><button onclick="runFind()">Search</button></div>
+        <div class="chiprow" id="findChips"></div>
+        <div class="layer-toggles">
+          <span class="lt" data-layer="dc"><span class="ld" style="background:var(--green)"></span>Centres</span>
+          <span class="lt" data-layer="hv"><span class="ld" style="background:var(--amber)"></span>Home collection</span>
+        </div>
+        <div class="findlist" id="findList"></div>
+      </div>
+      <div id="map"></div>
+    </div>
+  </section>
+
+  <!-- ===== DIRECTORY (all centres, compact, clickable) ===== -->
+  <section style="padding-top:8px">
+    <div class="shead"><div><div class="eyebrow">The network</div><h2>All <span id="dirTotal"></span> centres</h2><p>Every partner centre at a glance. Tap any card for the full profile with services, accreditation and contacts.</p></div>
+      <div class="btn-row" style="display:flex;gap:9px;flex-wrap:wrap">
+        <button class="cta ghost" style="padding:10px 16px;font-size:13px;background:#fff;color:var(--ink);border:1px solid var(--line)" onclick="exportExcel(currentDirList(),'Network_Report.xlsx')"><svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 8l6 8M15 8l-6 8"/></svg>Excel</button>
+        <button class="cta primary" style="padding:10px 16px;font-size:13px" onclick="exportPDF('directory',currentDirList())"><svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9V3h12v6M6 18H4v-6h16v6h-2M8 14h8v7H8z"/></svg>PDF</button>
+      </div></div>
+    <div class="searchbar">
+      <input id="dirSearch" placeholder="Search centre, city or pincode…" oninput="renderDir()">
+      <select id="dirCity" onchange="renderDir()"><option value="">All cities</option></select>
+      <select id="dirSvc" onchange="renderDir()"><option value="">All services</option><option value="tmt">TMT</option><option value="bmd">BMD</option><option value="ultrasound">In-house Ultrasound</option><option value="echo">In-house 2D Echo</option><option value="online_consult">Online consult</option><option value="nabl">NABL</option><option value="iso">ISO</option></select>
+    </div>
+    <div class="dir-grid" id="dirGrid"></div>
+  </section>
+</div>
+
+<!-- ===== FOOTER ===== -->
+<div class="foot-band">
+  <div class="wrap">
+    <div><b>Diagnostic Network</b><div style="font-size:12px;margin-top:4px">National coverage · clarity, trust, innovation.</div></div>
+    <div class="esc" id="escFoot"></div>
+  </div>
+</div>
+
+<!-- ===== CENTER PROFILE MODAL ===== -->
+<div class="modal-bg" id="profileBg" onclick="if(event.target===this)closeProfile()">
+  <div class="profile" id="profileCard"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+const MASTER = {"services": [{"id": "tmt","name": "TMT (Treadmill)","category": "Cardiac","group": "g7","outsource": false,"cost": 0},{"id": "ecg","name": "ECG","category": "Cardiac","group": "g7","outsource": false,"cost": 0},{"id": "xray","name": "X-Ray","category": "Radiology","group": "g7","outsource": false,"cost": 0},{"id": "pft","name": "PFT","category": "Pulmonary","group": "g7","outsource": false,"cost": 0},{"id": "audiometry","name": "Audiometry","category": "ENT","group": "g7","outsource": false,"cost": 0},{"id": "ultrasound","name": "Ultrasound","category": "Radiology","group": null,"outsource": true,"cost": 1000},{"id": "echo","name": "2D Echo","category": "Cardiac","group": null,"outsource": true,"cost": 2500},{"id": "sonomammography","name": "Sonomammography","category": "Radiology","group": null,"outsource": true,"cost": 2500},{"id": "bmd","name": "BMD (Bone Mineral Density)","category": "Radiology","group": null,"outsource": false,"cost": 0},{"id": "vaccination","name": "Vaccination","category": "Preventive","group": null,"outsource": false,"cost": 0},{"id": "online_consult","name": "Online Consultation","category": "Consultation","group": null,"outsource": false,"cost": 0},{"id": "after_report","name": "After-Report Consultation","category": "Consultation","group": null,"outsource": false,"cost": 0}],"centres": [{"sno": 1,"name": "AMINO DIAGNOSTICS PRIVATE LIMITED","city": "Delhi","address": "ED-17A, PITAMPURA NORTH WEST DELHI","pincode": "110034","status": "NABL Accredited","nabl": true,"iso": false,"tmt": "IN","ecg": "IN","xray": "IN","pft": "IN","audiometry": "IN","papsmear": "IN","ultrasound": "IN","echo": "IN","sonomammography": "IN","bmd": "IN","vaccination": "IN","online_consult": "IN","after_report": "IN","consultation": "IN","cost_ultrasound": 0,"cost_echo": 0,"cost_sonomammography": 0,"g_raw": "INHOUSE","h_raw": "INHOUSE","location": "https://maps.app.goo.gl/gG5JB8SD47BEhsvN6","spoc": "MR MAHESH CHAND","contact": "7982394329","email": "info@aminodiagnostics.com","lat": 28.6139,"lng": 77.209},{"sno": 2,"name": "RED DIAGNOSTICS","city": "Noida","address": "D-82A, GROUND FLOOR, MAHARAJA AGRASEN MARG, D-BLOCK, SECTOR-26, NOIDA, UTTAR PRADESH","pincode": "201301","status": "ISO  Certified","nabl": false,"iso": true,"tmt": "IN","ecg": "IN","xray": "IN","pft": "IN","audiometry": "IN","papsmear": "IN","ultrasound": "IN","echo": "IN","sonomammography": "IN","bmd": "NA","vaccination": "IN","online_consult": "IN","after_report": "IN","consultation": "IN","cost_ultrasound": 0,"cost_echo": 0,"cost_sonomammography": 0,"g_raw": "INHOUSE","h_raw": "INHOUSE (11:00 TO 2 PM)","location": "https://maps.app.goo.gl/USpVfyLGiHWaLZ1Q6","spoc": "JYOTI OLIYA","contact": "9311577762","email": "rgdiagnosticsnoida@gmail.com","lat": 28.5355,"lng": 77.391},{"sno": 3,"name": "XENON MED SERVICES","city": "Lucknow","address": "Shop No. 4 krishna Complex Baldi Kheda kanpur Road Near Krishna Nagar Metro station Lucknow","pincode": "226012","status": "ISO, NABL(In-Process)","nabl": true,"iso": true,"tmt": "IN","ecg": "IN","xray": "IN","pft": "IN","audiometry": "IN","papsmear": "IN","ultrasound": "OUT","echo": "OUT","sonomammography": "OUT","bmd": "NA","vaccination": "IN","online_consult": "IN","after_report": "IN","consultation": "IN","cost_ultrasound": 1000,"cost_echo": 2500,"cost_sonomammography": 2500,"g_raw": "INHOUSE","h_raw": "OUT SOURCED","location": "https://maps.app.goo.gl/ZkNV1tdDP4wgSrkp6","spoc": "PRIYANKA","contact": "9818777610","email": "xenonpims@gmail.com","lat": 26.8467,"lng": 80.9462},{"sno": 4,"name": "GENTLE CORPORATE CARE","city": "Delhi","address": "65, RAM VIHAR, UPPER GROUND FLOOR, REAR PORTION DELHI","pincode": "110092","status": "ISO  Certified","nabl": false,"iso": true,"tmt": "IN","ecg": "IN","xray": "IN","pft": "IN","audiometry": "IN","papsmear": "IN","ultrasound": "IN","echo": "IN","sonomammography": "IN","bmd": "NA","vaccination": "IN","online_consult": "IN","after_report": "IN","consultation": "IN","cost_ultrasound": 1000,"cost_echo": 2500,"cost_sonomammography": 2500,"g_raw": "INHOUSE","h_raw": "INHOUSE","location": "https://maps.app.goo.gl/taqLv9duqauXM1Tv5","spoc": "SAMAKSH CHAUHAN","contact": "9311915435","email": "gentlecorporatecare@gmail.com","lat": 28.6814,"lng": 77.2756},{"sno": 5,"name": "SOWAKA CORPORATE CARE","city": "Greater Noida","address": "G-1, opposite wheelmart, Sector Pi-1, Ekanki Enclave, Block G, Pi I & II, Greater Noida, Uttar Pradesh","pincode": "201308","status": "ISO  Certified","nabl": false,"iso": true,"tmt": "IN","ecg": "IN","xray": "IN","pft": "IN","audiometry": "IN","papsmear": "IN","ultrasound": "IN","echo": "IN","sonomammography": "IN","bmd": "NA","vaccination": "IN","online_consult": "IN","after_report": "IN","consultation": "IN","cost_ultrasound": 1000,"cost_echo": 2500,"cost_sonomammography": 2500,"g_raw": "INHOUSE","h_raw": "INHOUSE","location": "https://maps.app.goo.gl/ZfiWEFqaiicADoZ48","spoc": "HIMANSHU","contact": "7835819665","email": "sowakacorporatecare@gmail.com","lat": 28.4744,"lng": 77.504}],"pincodes": [{"pin": "110001","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Baroda House, Bengali Market, Bhagat Singh market, Connaught Place, Constitution House, Election Commission, Janpath, Krishi Bhawan, Lady Harding medical college, North Avenue, Parliament House, Patiala House, Pragati Maidan, Rail Bhawan, Sansad Marg, Sansadiya Soudh, Secretariat North, Shastri Bhawan, Supreme Court","lat": 28.6139,"lng": 77.209},{"pin": "110002","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "A.G.c.r., Ajmeri Gate extn., Darya Ganj, Gandhi Smarak nidhi, I.P.estate, Indraprastha, Minto Road, Rajghat Power house","lat": 28.6139,"lng": 77.209},{"pin": "110003","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Delhi High court, Pandara Road, Aliganj, C G o complex, Golf Links, Kasturba Nagar, Lodi Colony market, Lodi Road, Pragati Vihar, Safdarjung Air port","lat": 28.6139,"lng": 77.209},{"pin": "110004","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Rashtrapati Bhawan","lat": 28.6139,"lng": 77.209},{"pin": "110005","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Anand Parbat, Anand Parbat indl. area, Bank Street, Desh Bandhu gupta road, Guru Gobind singh marg, Karol Bagh, Master Prithvi nath marg, Sat Nagar","lat": 28.6139,"lng": 77.209},{"pin": "110006","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Hauz Qazi, Jama Masjid, Baratooti, Chandni Chowk, Chawri Bazar, Dareeba, Delhi Sadar bazar, S.T. road","lat": 28.6139,"lng": 77.209},{"pin": "110007","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Birla Lines, C.C.i., Delhi University, Gulabi Bagh, Jawahar Nagar, Kamla Nagar, Malka Ganj, Padam Nagar, R.C.a.o., Rana Pratap bagh, Roop Nagar, Roshan Ara road, Shakti Nagar","lat": 28.6139,"lng": 77.209},{"pin": "110008","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Dada Ghosh bhawan, Patel Nagar, Patel Nagar east, Patel Nagar south, Patel Nagar west","lat": 28.6139,"lng": 77.209},{"pin": "110011","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Gym Khana club, Nirman Bhawan, South Avenue, Udyog Bhawan","lat": 28.6139,"lng": 77.209},{"pin": "110012","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "I.A.r.i., Inderpuri, National Physical laboratory","lat": 28.6139,"lng": 77.209},{"pin": "110013","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Dargah Sharif, Hazrat Nizamuddin","lat": 28.6139,"lng": 77.209},{"pin": "110014","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Hari Nagar ashram, Jeevan Nagar, Jungpura, Pratap Market","lat": 28.6139,"lng": 77.209},{"pin": "110015","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Bakkarwala, Chaukhandi, Delhi Industrial area, Esi, Hastal Village, Hirankudna, Jwalaheri, Karam Pura, L. m. nagar indl. area, Mansarover Garden, N.I.area, Nangloi - ii, Nilothi, Peeragarhi, Ramesh Nagar, Ranhola, Tikri Kalan, Zakhira","lat": 28.6139,"lng": 77.209},{"pin": "110017","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Chirag Delhi, Mmtc/stc Colony, Malviya Nagar, Panchsheel Enclave, Pushp Vihar, Saket, Sarvodya Enclave, South Malviya nagar","lat": 28.6139,"lng": 77.209},{"pin": "110018","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Ashok Nagar, Chand Nagar, Fateh Nagar, Khyala Phase - i, Khyala Phase - ii, M.B.s. nagar, Mahabir Nagar, Tilak Nagar, Tilak Nagar east, Vikas Puri, Vishnu Garden","lat": 28.6139,"lng": 77.209},{"pin": "110019","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Alaknanda, Ali, Chittranjan Park, Govindpuri, Kalkaji, Lal Kuan, Nehru Place, Tehkhand, Tugalkabad","lat": 28.6139,"lng": 77.209},{"pin": "110020","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "C R r i, Okhla Industrial area phase-i, Okhla Industrial estate","lat": 28.6139,"lng": 77.209},{"pin": "110024","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Amar Colony, Defence Colony, Krishna Market, Lajpat Nagar","lat": 28.6139,"lng": 77.209},{"pin": "110025","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Abul Fazal enclave-i, Jamia Nagar, New Friends colony, Sukhdev Vihar, Zakir Nagar","lat": 28.6139,"lng": 77.209},{"pin": "110026","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Ashoka Park extn., Punjabi Bagh, Punjabi Bagh sec - iii, Shivaji Park","lat": 28.6139,"lng": 77.209},{"pin": "110027","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "J-6 Rajouri garden, Janta Market, Rajouri Garden, Rajouri Market, Subhash Nagar, Subhash Nagar west","lat": 28.6139,"lng": 77.209},{"pin": "110031","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Gandhi Nagar, Gandhi Nagar bazar, Geeta Colony, Kailash Nagar, Raghubar Pura, Rajgarh Colony, Shastri Nagar","lat": 28.6139,"lng": 77.209},{"pin": "110032","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Babarpur, Balbir Nagar, Bhola Nath nagar, Distt. court (kkd), Goverdhan Bihari colony, Loni Road, Man Sarovar park, Rohtash Nagar, Shahdara, Shahdara Mandi, Shivaji Park, Telewara, Vishwas Nagar","lat": 28.6139,"lng": 77.209},{"pin": "110041","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Mundka, Nangloi, Nangloi - iii","lat": 28.6139,"lng": 77.209},{"pin": "110044","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Btps, Badarpur, Jaitpur, Molarband, Pul Pahladpur, Tugalkabad Railway colony","lat": 28.6139,"lng": 77.209},{"pin": "110048","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Greater Kailash, Greater Kailash part ii, Kailash Colony, Masjid Moth","lat": 28.6139,"lng": 77.209},{"pin": "110049","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Andrewsganj, Gautam Nagar, Gulmohar Park, New Delhi south ext-ii, Sadiq Nagar, Sahpurjat","lat": 28.6139,"lng": 77.209},{"pin": "110051","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Azad Nagar, Govind Pura, Krishna Nagar, Ram Nagar","lat": 28.6139,"lng": 77.209},{"pin": "110053","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Bhajan Pura, Brahampuri, Ghonda, Jafrabad, Jagjit Nagar, Maujpur, New Usmanpur, Seelampur, Yamuna Vihar","lat": 28.6139,"lng": 77.209},{"pin": "110054","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Civil Lines, Distt Courts, Patrachar Vidyalay, Timarpur","lat": 28.6139,"lng": 77.209},{"pin": "110055","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "A.K.market, Multani Dhanda, Pahar Ganj, Swami Ram tirth nagar","lat": 28.6139,"lng": 77.209},{"pin": "110058","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "A-3 Janak puri, B-1 Janak puri, D.E.s.u. colony, Jail Road, Janakpuri","lat": 28.6139,"lng": 77.209},{"pin": "110059","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "D. k. mohan garden, Jeevan Park, Matiala, Uttam Nagar","lat": 28.6139,"lng": 77.209},{"pin": "110060","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Rajender Nagar","lat": 28.6139,"lng": 77.209},{"pin": "110062","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Air Force station tugalkabad, Bsf Camp tigri, Dakshinpuri Phase-i, Dakshinpuri Phase-ii, Dakshinpuri Phase-iii, Deoli, Dr. ambedkar nagar, Hamdard Nagar, Khanpur, Pushpa Bhawan, Talimabad","lat": 28.6139,"lng": 77.209},{"pin": "110063","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Jawala Heri, Madipur Slum quarter, Madipur Village, Paschim Vihar, Paschim Vihar b block","lat": 28.6139,"lng": 77.209},{"pin": "110064","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Hari Nagar, Hari Nagar be block, Hari Nagar dadb block","lat": 28.6139,"lng": 77.209},{"pin": "110065","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "East Of kailash, East Of kailash phase-i, Nehru Nagar, Sant Nagar, Sriniwaspuri","lat": 28.6139,"lng": 77.209},{"pin": "110069","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Union Public service commissio","lat": 28.6139,"lng": 77.209},{"pin": "110076","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Madanpur Khadar, Sarita Vihar","lat": 28.6139,"lng": 77.209},{"pin": "110084","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Burari, Jagatpur, Jharoda Majraa","lat": 28.6139,"lng": 77.209},{"pin": "110087","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Jwala Puri, Sunder Vihar","lat": 28.6139,"lng": 77.209},{"pin": "110091","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Chilla, Himmatpuri, Kalyanpuri, Kalyanvas, Mayur Vihar ph-i, Patparganj, Trilok Puri","lat": 28.6139,"lng": 77.209},{"pin": "110092","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Anand Vihar, Laxmi Nagar, Mandawali Fazalpur, Nirman Vihar, Shakarpur, Surajmal Vihar, Yozna Vihar","lat": 28.6139,"lng": 77.209},{"pin": "110093","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Loni Road housing complex, Mandoli Saboli, Nand Nagri a, Nand Nagri c","lat": 28.6139,"lng": 77.209},{"pin": "110094","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Dayalpur, Gokal Puri, Johripur, Karawal Nagar, Khazuri Khas, Sabhapur, Sonia Vihar","lat": 28.6139,"lng": 77.209},{"pin": "110095","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Dilshad Garden, G.T.b. hospital, Jhilmil, Jhilmil Tahirpur, New Seemapuri, Old Seemapuri, V.K. nagar, Vivek Vihar","lat": 28.6139,"lng": 77.209},{"pin": "110096","city": "Delhi","state": "Delhi","free": true,"charge": 0,"localities": "Ghazipur, Mayur Vihar ph-iii, Vasundhra Enclave","lat": 28.6139,"lng": 77.209},{"pin": "202399","city": "Bulandshahr, Gautam Buddha Nagar","state": "Uttar Pradesh","free": false,"charge": 500,"localities": "Dharakpur, Jargawan, Ramghat, Chiroury","lat": 28.6,"lng": 77.2},{"pin": "203131","city": "Bulandshahr, Gautam Buddha Nagar","state": "Uttar Pradesh","free": false,"charge": 500,"localities": "Agaura hameerpur, Ahmadgarh, Arniya, Bada Gaon, Bagrai khurd, Banail, Bhatwara, Bichoula, Dashhera kherli, Dharpa Chuhar pur, Dinoul, Gt Road khurja, Jarara, Jawal, Kalena, Kehroula, Khurja, Khurja chowk, Kirra, Meerpur, Munda khera, Muni, Nagla Mahiuddinpur, Raniaoli, Roop wash pachgain, Seekri, Senda faridpur, Shahbaz Pur, Subhash road khurja, Surjawaly, Bilaspur","lat": 28.6,"lng": 77.2},{"pin": "203201","city": "Bulandshahr, Gautam Buddha Nagar","state": "Uttar Pradesh","free": false,"charge": 500,"localities": "Dankaur, Dhanouri kalan, Mirzapur Niloni, Nawada, Parsol","lat": 28.6,"lng": 77.2},{"pin": "203202","city": "Bulandshahr, Gautam Buddha Nagar","state": "Uttar Pradesh","free": false,"charge": 500,"localities": "Gurukul sikandrabad, Astauly, Baroda, Chiti, Deota, Rashol rithaury, Salempur gujar, Wair","lat": 28.6,"lng": 77.2},{"pin": "203203","city": "Bulandshahr, Gautam Buddha Nagar","state": "Uttar Pradesh","free": false,"charge": 500,"localities": "Dhanoura, Kakore, Banchawaly, Bichat sujanpur, Biroundi Tajpur, Chol R.s., Jhajhar, Khabra khanpur, Mahamdpur jadon, Salempur jat, Sunpera, Wailana","lat": 28.6,"lng": 77.2},{"pin": "201008","city": "Gautam Buddha Nagar","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Bisara, Piyaoli, Salarpur Kalan, Vidyut Nagar","lat": 28.5355,"lng": 77.391},{"pin": "201304","city": "Gautam Buddha Nagar","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Baraula, Gejha, Maharishi Nagar, Parthala Khanjarpur, Sarfabad","lat": 28.5355,"lng": 77.391},{"pin": "201305","city": "Gautam Buddha Nagar","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Chhaprauli Bengar, Nagla Charandas, Nepz Post office","lat": 28.5355,"lng": 77.391},{"pin": "201306","city": "Gautam Buddha Nagar","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Ghori, I.A. surajpur, Kasna, Kulesra, Sakipur, Tilapta Karanwas","lat": 28.5355,"lng": 77.391},{"pin": "201307","city": "Gautam Buddha Nagar","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Chhajarsi, Khora Gaon, Sec-34 Noida, Sec-55 Noida","lat": 28.5355,"lng": 77.391},{"pin": "201308","city": "Gautam Buddha Nagar","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Alpha Greater noida, Tugalpur","lat": 28.5355,"lng": 77.391},{"pin": "201309","city": "Gautam Buddha Nagar","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Sec-62 Noida","lat": 28.5355,"lng": 77.391},{"pin": "203135","city": "Gautam Buddha Nagar","state": "Uttar Pradesh","free": false,"charge": 1000,"localities": "Dayanatpur, Faleda, Jewar, Kanigarhi, Kureb, Mangrouly, Sabouta jafrabad","lat": 28.5355,"lng": 77.391},{"pin": "203141","city": "Gautam Buddha Nagar","state": "Uttar Pradesh","free": false,"charge": 1000,"localities": "Bhaipur, Bhunna jattan, Chhapana, Chingrawly, Firoujpur, Gotheny, Jahangirpur, Jawan, Lodana, Mansoor Pur hasanpur, Narmohamadpur, Ram garhi, Shahpur kala","lat": 28.5355,"lng": 77.391},{"pin": "203155","city": "Gautam Buddha Nagar","state": "Uttar Pradesh","free": false,"charge": 500,"localities": "Ahamedpur chauroli, Bankapur, Chanchaly, Kishore Pur, Manchad, Neemka, Ranhera, Thora","lat": 28.5355,"lng": 77.391},{"pin": "203207","city": "Gautam Buddha Nagar","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Achheja, Bambawar, Behhrampur, Chainsa, Chholas, Chithera, Dadri, Dujana, Jarcha, Kachera Versabad, Kalaunda, Khandara, Khatana, Kheri Bhanauta, Kot, Luharli, Pali, Sainthli, Vedpura","lat": 28.5355,"lng": 77.391},{"pin": "203208","city": "Gautam Buddha Nagar","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Dhoomedso","lat": 28.5355,"lng": 77.391},{"pin": "203209","city": "Gautam Buddha Nagar","state": "Uttar Pradesh","free": false,"charge": 500,"localities": "Bhaipur brahmanan, Karauli Banger, Rabupura, Ronija, Tirthaly","lat": 28.5355,"lng": 77.391},{"pin": "201301","city": "Ghaziabad, Gautam Buddha Nagar","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Sec-27 Noida, Bisrakh, Maicha, Noida, Sec-12 Noida, Sec-16 Noida, Sec-30 Noida","lat": 28.6,"lng": 77.2},{"pin": "201303","city": "Ghaziabad, Gautam Buddha Nagar","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Sec-41 Noida, Sec-37 Noida, Sec-45 Noida","lat": 28.6,"lng": 77.2},{"pin": "226001","city": "Lucknow","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Hazratganj, Lalbagh, Lucknow GPO, Jawahar Bhawan","lat": 26.8467,"lng": 80.9462},{"pin": "226002","city": "Lucknow","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Cantonment, Dilkusha, Nilmatha, Chak Ganjaria","lat": 26.8467,"lng": 80.9462},{"pin": "226003","city": "Lucknow","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Chowk, Raja Bazar, Medical College, Sadatganj, Amberganj","lat": 26.8467,"lng": 80.9462},{"pin": "226004","city": "Lucknow","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Charbagh, Rajendra Nagar, Pandariba","lat": 26.8467,"lng": 80.9462},{"pin": "226005","city": "Lucknow","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Alambagh, Pawanpuri, Adarsh Nagar","lat": 26.8467,"lng": 80.9462},{"pin": "226006","city": "Lucknow","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Mahanagar, Sant Market","lat": 26.8467,"lng": 80.9462},{"pin": "226007","city": "Lucknow","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "New Hyderabad, Nadwa, Butler Palace Area","lat": 26.8467,"lng": 80.9462},{"pin": "226008","city": "Lucknow","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Amausi, Sarojini Nagar, Airport Area","lat": 26.8467,"lng": 80.9462},{"pin": "226010","city": "Lucknow","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Gomti Nagar, Vibhuti Khand, Viram Khand, Ismailganj","lat": 26.8467,"lng": 80.9462},{"pin": "226012","city": "Lucknow","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Ashiyana, LDA Colony","lat": 26.8467,"lng": 80.9462},{"pin": "226016","city": "Lucknow","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Indira Nagar, Ghazipur, Munshipulia","lat": 26.8467,"lng": 80.9462},{"pin": "226017","city": "Lucknow","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Rajajipuram, Alamnagar","lat": 26.8467,"lng": 80.9462},{"pin": "226018","city": "Lucknow","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Aminabad, Ganeshganj, Molviganj","lat": 26.8467,"lng": 80.9462},{"pin": "226020","city": "Lucknow","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Nirala Nagar, Jankipuram Extension, Sitapur Road Area","lat": 26.8467,"lng": 80.9462},{"pin": "226021","city": "Lucknow","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Jankipuram","lat": 26.8467,"lng": 80.9462},{"pin": "226022","city": "Lucknow","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Vikas Nagar","lat": 26.8467,"lng": 80.9462},{"pin": "226023","city": "Lucknow","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Manas Nagar, PAC Area","lat": 26.8467,"lng": 80.9462},{"pin": "226024","city": "Lucknow","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Aliganj, Chandganj, Aliganj Extension, Kapoorthala","lat": 26.8467,"lng": 80.9462},{"pin": "226025","city": "Lucknow","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "South City, Telibagh","lat": 26.8467,"lng": 80.9462},{"pin": "226026","city": "Lucknow","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Dubagga, Hardoi Road Area","lat": 26.8467,"lng": 80.9462},{"pin": "226028","city": "Lucknow","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Gomti Nagar Extension, Shaheed Path Area","lat": 26.8467,"lng": 80.9462},{"pin": "227105","city": "Lucknow","state": "Uttar Pradesh","free": true,"charge": 0,"localities": "Chinhat, Malhaur, Juggaur","lat": 26.8467,"lng": 80.9462}],"escalation": [{"level": "Level I","name": "Concern DC SPOC (Head)","contact": "As per given list"},{"level": "Level II","name": "Himanshu Kumar","contact": "7835819665"},{"level": "Level III","name": "Yunus Ji","contact": "9810065271"},{"level": "Level III","name": "Mohammad Arfeen","contact": "9818140044"}],"meta": {"as_on": "08-Jun-2026","centre_count": 28,"pincode_count": 406}};
+let CENTRES = MASTER.centres;
+
+const GREEN='#16A34A',GREEN_D='#0F7A37',AMBER='#C8821A',BLUE='#2B5FA8',ROSE='#B23B4E';
+const STATE_OF={Delhi:'Delhi',Noida:'Uttar Pradesh','Greater Noida':'Uttar Pradesh',Ghaziabad:'Uttar Pradesh',Meerut:'Uttar Pradesh',Agra:'Uttar Pradesh',Aligarh:'Uttar Pradesh',Bulandshahr:'Uttar Pradesh',Etah:'Uttar Pradesh',Kanpur:'Uttar Pradesh',Lucknow:'Uttar Pradesh',Gurugram:'Haryana',Faridabad:'Haryana',Yamunanagar:'Haryana'};
+const uniq=a=>[...new Set(a)].filter(Boolean);
+/* ============ CENTRALIZED SERVICE ENGINE (single source of truth) ============
+   The per-centre service status (IN / OUT / NA) plus the service registry form the
+   master state. Management saves this state on every edit; the Executive and Client
+   dashboards load it at startup. Toggling a service In-House <-> Outsourced in
+   Management therefore updates every panel, profile, matrix, map and export across
+   all three dashboards (same browser) with no manual updates. */
+const NET_KEY='network_state_v1';
+function loadNetworkState(){
+  try{
+    const raw=localStorage.getItem(NET_KEY);
+    if(!raw)return false;
+    const saved=JSON.parse(raw);
+    if(saved&&Array.isArray(saved.centres)&&saved.centres.length&&Array.isArray(saved.services)&&saved.services.length){
+      MASTER.centres=saved.centres;
+      MASTER.services=saved.services;
+      if(Array.isArray(saved.pincodes)&&saved.pincodes.length)MASTER.pincodes=saved.pincodes;
+      MASTER._live=true;MASTER._savedAt=saved.savedAt||'';
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+function saveNetworkState(){
+  try{
+    localStorage.setItem(NET_KEY,JSON.stringify({centres:MASTER.centres,services:MASTER.services,pincodes:MASTER.pincodes,savedAt:new Date().toISOString()}));
+    MASTER._live=true;
+  }catch(e){}
+}
+function clearNetworkState(){try{localStorage.removeItem(NET_KEY);}catch(e){}}
+
+const svcLabel=f=>f==='IN'?'<span class="svc-yes">In-house</span>':f==='OUT'?'<span class="svc-out">Outsourced</span>':'<span class="svc-no">—</span>';
+const cell=f=>f==='IN'?'<span class="cell-in">✓</span>':f==='OUT'?'<span class="cell-out">OUT</span>':'<span class="cell-no">✕</span>';
+function accBadge(c){if(c.nabl&&c.iso)return '<span class="badge-c b-both">NABL · ISO</span>';if(c.nabl)return '<span class="badge-c b-nabl">NABL</span>';if(c.iso)return '<span class="badge-c b-iso">ISO</span>';return '<span class="muted">—</span>';}
+function haversine(a,b,c,d){const R=6371,dLat=(c-a)*Math.PI/180,dLng=(d-b)*Math.PI/180;const x=Math.sin(dLat/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dLng/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
+function toast(msg){const t=document.createElement('div');t.textContent=msg;t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#0C1B12;color:#fff;padding:12px 22px;border-radius:12px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 12px 30px rgba(0,0,0,.3)';document.body.appendChild(t);setTimeout(()=>t.remove(),2200);}
+function dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();}
+function countUp(){document.querySelectorAll('[data-target]').forEach(el=>{const t=+el.dataset.target;if(isNaN(t))return;let s=0;const step=Math.max(1,Math.ceil(t/28));const iv=setInterval(()=>{s+=step;if(s>=t){s=t;clearInterval(iv);}el.textContent=s.toLocaleString();},22);});}
+
+/* find nearest centres/pincodes by query */
+function resolveRef(q){
+  q=(q||'').trim().toLowerCase();if(!q)return null;
+  if(/^\d{3,6}$/.test(q)){
+    let exact=MASTER.centres.filter(c=>c.pincode===q);
+    if(exact.length)return{ref:exact[0],exactCentres:exact,pin:q};
+    let pinHit=MASTER.pincodes.find(p=>p.pin===q);
+    if(pinHit)return{ref:pinHit,exactCentres:[],pin:q,pinRow:pinHit};
+    const sorted=MASTER.centres.map(c=>({c,d:Math.abs(parseInt(c.pincode)-parseInt(q.padEnd(6,'0')))})).sort((a,b)=>a.d-b.d);
+    return{ref:sorted[0].c,exactCentres:[],pin:q};
+  }
+  const byCity=MASTER.centres.filter(c=>c.city.toLowerCase().includes(q));
+  if(byCity.length)return{ref:byCity[0],exactCentres:[],city:q};
+  const pinCity=MASTER.pincodes.find(p=>p.city.toLowerCase().includes(q));
+  if(pinCity)return{ref:pinCity,exactCentres:[],city:q,pinRow:pinCity};
+  return null;
+}
+function nearestCentres(ref,n=6,filterFn=null){
+  let list=MASTER.centres.map(c=>({...c,_d:haversine(ref.lat,ref.lng,c.lat,c.lng)}));
+  if(filterFn)list=list.filter(filterFn);
+  return list.sort((a,b)=>a._d-b._d).slice(0,n);
+}
+function homeCoverage(pin){
+  const row=MASTER.pincodes.find(p=>p.pin===pin);
+  return row?{covered:true,row}:{covered:false};
+}
+/* Standard operating schedule (used unless a centre carries custom timings). */
+const STD_DAYS='Open 7 Days a Week';
+const STD_HOURS='08:00 AM – 08:00 PM';
+/* Pincodes a centre is taken to serve = the home-collection pincodes in its city/district.
+   (The source data lists home-collection coverage by city, not per-centre, so city is the link.) */
+function centrePincodes(c){
+  const city=(c.city||'').trim().toLowerCase();
+  return (MASTER.pincodes||[]).filter(p=>(p.city||'').trim().toLowerCase()===city);
+}
+function centreCoverage(c){
+  const pins=centrePincodes(c);
+  const free=pins.filter(p=>p.free).length;
+  const localitySet=new Set();
+  pins.forEach(p=>(p.localities||'').split(',').forEach(l=>{const t=l.trim();if(t)localitySet.add(t);}));
+  return {pins,total:pins.length,free,paid:pins.length-free,localities:localitySet.size,hasHC:pins.length>0};
+}
+
+/* ============ COMPLETE EXPORTS (shared) ============ */
+/* The service set is now DERIVED from the dynamic registry (MASTER.services), so adding
+   a service in the Service Master automatically flows into every export, matrix and KPI. */
+function SVC_LIST(){ return (MASTER.services||[]).map(s=>[s.name,s.id]); }
+const SVC_COLS=(MASTER.services||[]).map(s=>[s.name,s.id]); // static snapshot for early calls; UI uses SVC_LIST()
+const svcWord=v=>v==='IN'?'In-house':v==='OUT'?'Outsourced':'Not available';
+function accText(c){return (c.nabl&&c.iso)?'NABL + ISO':c.nabl?'NABL':c.iso?'ISO':(c.status||'—');}
+/* Outsource cost for a given centre+service. Per-centre override wins, else the registry default. */
+function svcDef(id){return (MASTER.services||[]).find(s=>s.id===id)||{};}
+function outsourceCost(c,id){const o=c['cost_'+id];if(o!=null&&o>0)return o;const d=svcDef(id);return d.cost||0;}
+function isOutsourceService(id){return !!svcDef(id).outsource;}
+
+/* Directory rows: identity + accreditation + every service spelled out + contacts */
+function directoryAOA(list){
+  const S=SVC_LIST();
+  const head=['S.No','Centre','City','State','Pincode','Accreditation',...S.map(s=>s[0]),'SPOC','Contact','Email','Google Location','Full Address'];
+  const rows=list.map(c=>[c.sno,c.name,c.city,(STATE_OF[c.city]||''),c.pincode,accText(c),...S.map(s=>svcWord(c[s[1]])),c.spoc||'',c.contact||'',c.email||'',c.location||'',c.address||'']);
+  return [head,...rows];
+}
+/* Service matrix rows: compact ✓/Outsourced/✗ across the full (dynamic) service set */
+function matrixAOA(list){
+  const S=SVC_LIST();
+  const head=['Centre','City','Pincode',...S.map(s=>s[0])];
+  const rows=list.map(c=>[c.name,c.city,c.pincode,...S.map(s=>c[s[1]]==='IN'?'Yes':c[s[1]]==='OUT'?'Outsourced':'No')]);
+  return [head,...rows];
+}
+/* Outsource payment-tracking export (admin) */
+function outsourceAOA(){
+  const head=['Centre','City','Service','Outsource Charge (Rs)','Payment Status','Report Release'];
+  const rows=[];
+  list_outsource_rows().forEach(r=>rows.push([r.centre,r.city,r.service,r.cost,r.payStatus,r.release]));
+  return [head,...rows];
+}
+/* Home-collection coverage rows */
+function coverageAOA(){
+  const head=['Pincode','City / District','State','Collection Charge','Covered Localities'];
+  const rows=MASTER.pincodes.map(p=>[p.pin,p.city,p.state,p.free?'No Charge':('Rs '+p.charge),p.localities||'']);
+  return [head,...rows];
+}
+function autoWidth(aoa){return aoa[0].map((_,i)=>({wch:Math.min(60,Math.max(10,...aoa.map(r=>(r[i]==null?'':String(r[i])).length)))}));}
+
+/* Master workbook: Directory + Service Matrix + Home Collection — the complete export */
+function exportExcel(list,filename){
+  list=list||MASTER.centres;
+  if(typeof XLSX==='undefined'){toast('Excel library still loading — try again in a moment');return;}
+  const wb=XLSX.utils.book_new();
+  const dir=directoryAOA(list);const mtx=matrixAOA(list);const cov=coverageAOA();
+  const wsDir=XLSX.utils.aoa_to_sheet(dir);wsDir['!cols']=autoWidth(dir);
+  const wsMtx=XLSX.utils.aoa_to_sheet(mtx);wsMtx['!cols']=autoWidth(mtx);
+  const wsCov=XLSX.utils.aoa_to_sheet(cov);wsCov['!cols']=autoWidth(cov);
+  XLSX.utils.book_append_sheet(wb,wsDir,'Centre Directory');
+  XLSX.utils.book_append_sheet(wb,wsMtx,'Service Matrix');
+  XLSX.utils.book_append_sheet(wb,wsCov,'Home Collection');
+  XLSX.writeFile(wb,filename||'Network_Report.xlsx');
+  toast('Excel downloaded — 3 sheets');
+}
+/* Service matrix only, but still complete (all services) */
+function exportServiceExcel(list){
+  list=list||MASTER.centres;
+  if(typeof XLSX==='undefined'){toast('Excel library still loading — try again in a moment');return;}
+  const wb=XLSX.utils.book_new();
+  const mtx=matrixAOA(list);const dir=directoryAOA(list);
+  const wsMtx=XLSX.utils.aoa_to_sheet(mtx);wsMtx['!cols']=autoWidth(mtx);
+  const wsDir=XLSX.utils.aoa_to_sheet(dir);wsDir['!cols']=autoWidth(dir);
+  XLSX.utils.book_append_sheet(wb,wsMtx,'Service Matrix');
+  XLSX.utils.book_append_sheet(wb,wsDir,'Full Directory');
+  XLSX.writeFile(wb,'Service_Availability.xlsx');
+  toast('Service availability downloaded');
+}
+function exportCoverageExcel(){
+  if(typeof XLSX==='undefined'){toast('Excel library still loading — try again');return;}
+  const wb=XLSX.utils.book_new();const cov=coverageAOA();
+  const ws=XLSX.utils.aoa_to_sheet(cov);ws['!cols']=autoWidth(cov);
+  XLSX.utils.book_append_sheet(wb,ws,'Home Collection Coverage');
+  XLSX.writeFile(wb,'HomeCollection_Coverage.xlsx');
+  toast('Coverage Excel downloaded');
+}
+
+/* ============ OUTSOURCE PAYMENT TRACKING (shared) ============
+   For every centre where an outsource service is active, we track payment + report-release
+   status. Status persists in this browser via localStorage so the workflow survives reloads.
+   Workflow: Pending Payment -> Payment Received -> Report Release Allowed. */
+const OS_KEY='outsource_status_v1';
+let OS_STATE={};
+try{OS_STATE=JSON.parse(localStorage.getItem(OS_KEY)||'{}');}catch(e){OS_STATE={};}
+function osKey(sno,svcId){return sno+'::'+svcId;}
+function osStatus(sno,svcId){return OS_STATE[osKey(sno,svcId)]||'pending';}
+function osSet(sno,svcId,val){OS_STATE[osKey(sno,svcId)]=val;try{localStorage.setItem(OS_KEY,JSON.stringify(OS_STATE));}catch(e){}}
+function osReleaseLabel(st){return st==='received'?'Release allowed':'On hold';}
+/* All active outsource line-items across the network (centre × outsourced service). */
+function list_outsource_rows(){
+  const rows=[];
+  (MASTER.centres||[]).forEach(c=>{
+    (MASTER.services||[]).forEach(s=>{
+      if(s.outsource && c[s.id]==='OUT'){
+        const st=osStatus(c.sno,s.id);
+        rows.push({sno:c.sno,centre:c.name,city:c.city,service:s.name,svcId:s.id,
+          cost:outsourceCost(c,s.id),payStatus:st==='received'?'Payment received':'Pending payment',
+          statusRaw:st,release:osReleaseLabel(st)});
+      }
+    });
+  });
+  return rows;
+}
+
+/* PDF via a clean print window (works offline, no extra library). Builds a styled, complete table. */
+function exportPDF(kind,list){
+  list=list||MASTER.centres;
+  let title,aoa,note='';
+  if(kind==='service'){title='Service Availability Matrix';aoa=matrixAOA(list);note='Yes = in-house · Outsourced = via partner · No = not available.';}
+  else if(kind==='coverage'){title='Home Collection Coverage';aoa=coverageAOA();}
+  else if(kind==='outsource'){title='Outsource Payment Register';aoa=outsourceAOA();note='Report release is allowed only after the outsource charge is received.';}
+  else{title='Centre Directory';aoa=directoryAOA(list);}
+  const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const cellClass=v=>v==='Yes'||v==='In-house'?'y':(v==='Outsourced'?'o':(v==='No'||v==='Not available'?'n':''));
+  const head='<tr>'+aoa[0].map(h=>`<th>${esc(h)}</th>`).join('')+'</tr>';
+  const body=aoa.slice(1).map(r=>'<tr>'+r.map(c=>`<td class="${cellClass(c)}">${esc(c)}</td>`).join('')+'</tr>').join('');
+  const w=window.open('','_blank');
+  if(!w){toast('Allow pop-ups to export PDF');return;}
+  w.document.write(`<!DOCTYPE html><html><head><title>${title}</title><meta charset="utf-8">
+  <style>
+    @page{size:A4 landscape;margin:12mm}
+    *{font-family:Arial,Helvetica,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    body{margin:0;color:#0B1A10}
+    .h{display:flex;align-items:center;gap:12px;border-bottom:3px solid #16A34A;padding-bottom:12px;margin-bottom:14px}
+    .logo{width:34px;height:34px;border-radius:9px;background:#16A34A;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:16px;font-family:Arial}
+    h1{font-size:18px;margin:0}.sub{font-size:11px;color:#586B5F;margin-top:2px}
+    .meta{margin-left:auto;text-align:right;font-size:10px;color:#586B5F}
+    table{width:100%;border-collapse:collapse;font-size:9px}
+    th{background:#0B2415;color:#fff;text-align:left;padding:6px 5px;font-size:9px}
+    td{padding:5px;border-bottom:1px solid #E2EAE4;vertical-align:top}
+    tr:nth-child(even) td{background:#F7F9F7}
+    td.y{color:#0F7A37;font-weight:bold}td.o{color:#C8821A;font-weight:bold}td.n{color:#B0BBB3}
+    .note{font-size:10px;color:#80591A;background:#FBF1E0;border:1px solid #F0DCB4;border-radius:8px;padding:8px 10px;margin:10px 0}
+    .foot{margin-top:14px;font-size:9px;color:#586B5F;border-top:1px solid #E2EAE4;padding-top:8px}
+  </style></head><body>
+  <div class="h"><div class="logo">B</div><div><h1>Diagnostic Network — ${title}</h1><div class="sub">National diagnostic centre coverage &amp; service availability</div></div>
+  <div class="meta">As on 08-Jun-2026<br>${aoa.length-1} records</div></div>
+  ${note?`<div class="note">${note}</div>`:''}
+  <table>${head}${body}</table>
+  <div class="foot">Diagnostic Network · Generated from the live network register · Clarity. Trust. Innovation.</div>
+  <script>window.onload=function(){setTimeout(function(){window.print();},250);}<\/script>
+  </body></html>`);
+  w.document.close();
+}
+
+// Single source of truth: adopt live network state saved by the Management dashboard (if any)
+if(loadNetworkState())CENTRES=MASTER.centres;
+
+const TOTAL=CENTRES.length;
+// A centre supports home collection if its pincode is in the home-collection network.
+const HC_PINS=new Set((MASTER.pincodes||[]).map(p=>String(p.pin)));
+function isHC(c){return HC_PINS.has(String(c.pincode));}
+const hcBadge='<span class="hc-tag">🏠 Home Collection</span>';
+// Outsourced services + charges for a centre (used by badges and tooltips)
+function outServices(c){
+  return (MASTER.services||[]).filter(s=>s.outsource&&c[s.id]==='OUT').map(s=>{
+    const cost=outsourceCost(c,s.id);
+    return {name:s.name.replace(' (Bone Mineral Density)',''),cost,text:cost>0?('₹'+cost.toLocaleString()):'as per defined pricing'};
+  });
+}
+function outBadge(c){
+  const os=outServices(c);if(!os.length)return '';
+  const tip='Additional charges applicable: '+os.map(o=>o.name+' – '+o.text).join(' · ')+' · Payment required before report release';
+  return `<span class="out-tag" title="${tip}">🟠 Outsourced Services Available</span>`;
+}
+const pct=k=>Math.round(CENTRES.filter(c=>c[k]==='IN').length/TOTAL*100);
+const cnt=k=>CENTRES.filter(c=>c[k]==='IN').length;
+const cities=k=>uniq(CENTRES.filter(c=>c[k]==='IN').map(c=>c.city)).length;
+const stateCount=uniq(CENTRES.map(c=>STATE_OF[c.city]||'Other')).length;
+
+/* ---------- GAUGES (signature) ---------- */
+function ring(p,val,lab,sub){
+  const r=40,circ=2*Math.PI*r,off=circ*(1-p/100);
+  return `<div class="gauge"><div class="ring"><svg width="96" height="96" viewBox="0 0 96 96"><circle cx="48" cy="48" r="${r}" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="8"/><circle cx="48" cy="48" r="${r}" fill="none" stroke="#4ADE80" stroke-width="8" stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${circ}" style="transition:stroke-dashoffset 1.3s cubic-bezier(.2,.8,.2,1)" data-off="${off}"/></svg><div class="gv"><b>${val}</b><small>${sub}</small></div></div><div class="gl">${lab}</div></div>`;
+}
+function renderGauges(){
+  document.getElementById('gauges').innerHTML=[
+    ring(pct('tmt'),cnt('tmt'),'TMT &amp; cardiac','centres'),
+    ring(Math.round(cnt('ultrasound')/TOTAL*100),cnt('ultrasound'),'In-house imaging','centres'),
+    ring(pct('online_consult'),pct('online_consult')+'%','Online consult','coverage'),
+  ].join('');
+  setTimeout(()=>document.querySelectorAll('#gauges circle[data-off]').forEach(c=>c.style.strokeDashoffset=c.dataset.off),200);
+}
+
+/* ---------- STAT STRIP ---------- */
+function renderStrip(){
+  const corpClients='—';
+  const svcCats=(MASTER.services||[]).filter(s=>s.enabled!==false).length;
+  const s=[
+    {n:TOTAL,l:'Diagnostic centres',ic:'<path d="M12 21s-7-4.35-7-10a4 4 0 0 1 7-2.65A4 4 0 0 1 19 11c0 5.65-7 10-7 10Z"/>'},
+    {n:uniq(CENTRES.map(c=>c.city)).length,l:'Cities (centres)',ic:'<path d="m9 4 6 2 5-2v14l-5 2-6-2-5 2V6l5-2Z"/>'},
+    {n:stateCount,l:'States covered',ic:'<path d="M3 21h18M5 21V7l7-4 7 4v14"/>'},
+    {n:uniq(CENTRES.map(c=>c.pincode)).length,l:'Centre pincodes',ic:'<path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/>',alt:1},
+    {n:MASTER.pincodes.length,l:'Home-collection pincodes',ic:'<path d="M3 11l9-7 9 7M5 10v10h14V10"/>',alt2:1},
+    {n:uniq(MASTER.pincodes.map(p=>p.city)).length,l:'Home-collection cities',ic:'<path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11Z"/>',alt2:1},
+    {n:svcCats,l:'Service categories',ic:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',alt:1},
+  ];
+  document.getElementById('statStrip').innerHTML=s.map(x=>`<div class="stat ${x.alt?'alt':''} ${x.alt2?'alt2':''}"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${x.ic}</svg></div><div class="n" data-target="${x.n}">${typeof x.n==='number'?0:x.n}</div><div class="l">${x.l}</div></div>`).join('');
+  countUp();
+}
+
+/* ---------- SERVICE MATRIX ---------- */
+const SVC_ICONS={
+  tmt:'<path d="M3 12h4l3 7 4-14 3 7h4"/>',ecg:'<path d="M3 12h3l2-5 4 10 2-5h7"/>',echo:'<path d="M3 12h3l2-5 3 8 2-3h8"/>',
+  ultrasound:'<circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/>',xray:'<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/>',
+  pft:'<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M5 12a7 7 0 0 0 14 0"/>',audiometry:'<path d="M12 2a9 9 0 0 0-9 9v5a3 3 0 0 0 3 3h1v-7H5"/><path d="M21 16v-5a9 9 0 0 0-9-9"/>',
+  vaccination:'<path d="m18 2 4 4M17 7 7 17l-4 1 1-4L14 4Z"/><path d="m9 11 4 4"/>',sonomammography:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',
+  bmd:'<path d="M7 10c0-2 2-3 5-3s5 1 5 3-2 3-5 3-5-1-5-3ZM7 10v4c0 2 2 3 5 3s5-1 5-3v-4"/>',
+  home:'<path d="M3 11l9-7 9 7M5 10v10h14V10"/>',online:'<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8"/>',
+  after:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15l2 2 4-4"/>',
+  doctor:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',checkup:'<path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/>',
+  insurance:'<path d="M12 2 4 6v6c0 5 8 8 8 8s8-3 8-8V6Z"/>',camp:'<path d="m3 21 9-16 9 16M3 21h18M12 9v12"/>'
+};
+function svcCard(o){
+  if(o.network){
+    return `<div class="svc network"><div class="top"><div class="sic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${SVC_ICONS[o.icon]}</svg></div><div class="pct">All</div></div><h4>${o.name}</h4><div class="meta">${o.sub}</div><div class="barb"><div class="barf" data-w="100"></div></div></div>`;
+  }
+  if(o.cap){
+    return `<div class="svc cap"><div class="top"><div class="sic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${SVC_ICONS[o.icon]}</svg></div><div class="pct">●</div></div><h4>${o.name}</h4><div class="meta">${o.sub}</div><div class="tagrow"><svg viewBox="0 0 24 24" width="11" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>Network-wide capability</div></div>`;
+  }
+  const p=Math.round(o.n/TOTAL*100);
+  return `<div class="svc" onclick="filterBySvc('${o.key}')"><div class="top"><div class="sic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${SVC_ICONS[o.icon]}</svg></div><div class="pct">${p}%</div></div><h4>${o.name}</h4><div class="meta"><b>${o.n}</b> centres · ${o.c} cities</div><div class="barb"><div class="barf" data-w="${p}"></div></div></div>`;
+}
+function renderSvcGrid(){
+  const inH=k=>CENTRES.filter(c=>c[k]==='IN');
+  const ICON_FOR={tmt:'tmt',ecg:'ecg',echo:'echo',ultrasound:'ultrasound',xray:'xray',pft:'pft',audiometry:'audiometry',sonomammography:'sonomammography',bmd:'bmd',vaccination:'vaccination',online_consult:'online',after_report:'after'};
+  // Real, data-backed services straight from the dynamic registry (enabled only)
+  const regItems=(MASTER.services||[]).filter(s=>s.enabled!==false).map(s=>({
+    key:s.id,icon:ICON_FOR[s.id]||'checkup',
+    name:s.name.replace(' (Treadmill)',' (Treadmill)').replace(' (Bone Mineral Density)',''),
+    n:inH(s.id).length,c:uniq(inH(s.id).map(c=>c.city)).length
+  }));
+  const items=[
+    ...regItems,
+    {network:1,icon:'home',name:'Home Collection',sub:MASTER.pincodes.length+' pincodes · '+uniq(MASTER.pincodes.map(p=>p.city)).length+' cities'},
+    {network:1,icon:'doctor',name:'Doctor Consultation',sub:'In-house specialties on record'},
+    {cap:1,icon:'checkup',name:'Health Check-ups',sub:'AHC / PEME packages'},
+    {cap:1,icon:'insurance',name:'Insurance Medicals',sub:'TPA & pre-policy medicals'},
+    {cap:1,icon:'camp',name:'Corporate Camps',sub:'On-site wellness drives'},
+  ];
+  document.getElementById('svcGrid').innerHTML=items.map(svcCard).join('');
+  setTimeout(()=>document.querySelectorAll('#svcGrid .barf').forEach(b=>b.style.width=b.dataset.w+'%'),250);
+}
+function filterBySvc(key){
+  const validSvc=(MASTER.services||[]).some(s=>s.id===key);
+  document.getElementById('dirSvc').value=validSvc?key:'';
+  renderDir();
+  document.querySelector('.searchbar').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function renderOutPricing(){
+  const grid=document.getElementById('outPriceGrid');if(!grid)return;
+  // Outsource services come straight from the dynamic registry (admin-editable).
+  // Single-source-of-truth rule: a service appears here ONLY while at least one centre
+  // actually has it set to Outsourced. Flip every centre to In-House and it vanishes.
+  const osServices=(MASTER.services||[]).filter(s=>s.outsource&&s.enabled!==false&&CENTRES.some(c=>c[s.id]==='OUT'));
+  const sec=document.getElementById('outpricing');
+  if(!osServices.length){if(sec)sec.style.display='none';return;}
+  if(sec)sec.style.display='';
+  grid.innerHTML=osServices.map(s=>{
+    const nOut=CENTRES.filter(c=>c[s.id]==='OUT').length;
+    const price=s.cost>0?('₹'+s.cost.toLocaleString()):'As per defined pricing';
+    return `<div class="op-price"><span class="optag">${nOut} centre${nOut!==1?'s':''}</span><div class="opn">${s.name.replace(' (Bone Mineral Density)','')}</div><div class="opc">${price}</div><div class="opx">Outsourced additional charge</div></div>`;
+  }).join('');
+}
+
+/* ---------- ACCREDITATION ---------- */
+function renderAcc(){
+  const nabl=CENTRES.filter(c=>c.nabl).length,iso=CENTRES.filter(c=>c.iso).length,both=CENTRES.filter(c=>c.nabl&&c.iso).length;
+  const rows=[['NABL accredited',nabl,GREEN],['ISO certified',iso,BLUE],['NABL + ISO',both,GREEN_D]];
+  document.getElementById('accBars').innerHTML=rows.map(([l,n,col])=>`<div class="accrow"><div class="al">${l}</div><div class="ab"><div class="af" style="background:${col}" data-w="${Math.round(n/TOTAL*100)}"></div></div><div class="av">${n}</div></div>`).join('');
+  setTimeout(()=>document.querySelectorAll('#accBars .af').forEach(f=>f.style.width=f.dataset.w+'%'),250);
+  document.getElementById('accMini').innerHTML=[
+    {n:Math.round((nabl+iso-both)/TOTAL*100)+'%',l:'Quality-certified centres'},
+    {n:TOTAL,l:'Corporate-approved'},
+  ].map(x=>`<div class="mini"><div class="mn">${x.n}</div><div class="ml">${x.l}</div></div>`).join('');
+}
+
+/* ---------- HOME + ONLINE ---------- */
+function renderHomeHero(){
+  const P=MASTER.pincodes;
+  const cities=uniq(P.map(p=>p.city)).length;
+  const states=uniq(P.map(p=>p.state)).length;
+  // "Active home-collection centres": centres whose pincode falls in the home-collection network
+  const pinSet=new Set(P.map(p=>p.pin));
+  const activeHC=CENTRES.filter(c=>pinSet.has(String(c.pincode))).length;
+  const ck=(t)=>`<svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>`;
+  document.getElementById('hcFeats').innerHTML=[
+    'Same-Day Collection Availability','Corporate Home Visit Support',
+    'Insurance Medical Home Visits','Preventive Checkup Home Visits',
+  ].map(f=>`<div class="hc-feat"><span class="hk">${ck()}</span>${f}</div>`).join('');
+  const stat=(n,l,feat)=>`<div class="hc-stat${feat?' feat':''}"><div class="hcn" data-target="${typeof n==='number'?n:''}">${typeof n==='number'?'0':n}</div><div class="hcl">${l}</div></div>`;
+  document.getElementById('hcStats').innerHTML=
+    stat(P.length,'Home collection pincodes',1)+
+    stat(cities,'Cities &amp; districts covered')+
+    stat(activeHC||CENTRES.length,'Active collection centres')+
+    stat(P.length,'Serviceable areas');
+  // count-up the hero numbers
+  document.querySelectorAll('#hcStats .hcn[data-target]').forEach(el=>{
+    const t=parseInt(el.dataset.target);if(!t)return;let s=0;const step=Math.max(1,Math.ceil(t/28));
+    const iv=setInterval(()=>{s+=step;if(s>=t){s=t;clearInterval(iv);}el.textContent=s.toLocaleString();},22);
+  });
+}
+function renderHomeOnline(){
+  const P=MASTER.pincodes;
+  document.getElementById('hvBig').textContent='0';
+  const big=document.getElementById('hvBig');const t=P.length;let s=0;const step=Math.ceil(t/30);
+  const iv=setInterval(()=>{s+=step;if(s>=t){s=t;clearInterval(iv);}big.textContent=s.toLocaleString();},22);
+  document.getElementById('hvMini').innerHTML=[
+    {n:uniq(P.map(p=>p.city)).length,l:'Cities / districts'},
+    {n:uniq(P.map(p=>p.state)).length,l:'States covered'},
+    {n:P.filter(p=>p.free).length,l:'Free-collection pincodes'},
+    {n:Math.round(P.filter(p=>p.free).length/P.length*100)+'%',l:'Zero-charge coverage'},
+  ].map(x=>`<div class="mini"><div class="mn">${typeof x.n==='number'?x.n:x.n}</div><div class="ml">${x.l}</div></div>`).join('');
+  document.getElementById('onlineFeat').innerHTML=[
+    ['Online consultation',cnt('online_consult')+' centres enabled'],
+    ['After-report consultation',cnt('after_report')+' centres'],
+    ['Telemedicine support','Network-wide'],
+  ].map(([t,s])=>`<div class="feat"><div class="fk"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg></div><div><div style="font-weight:600">${t}</div><div class="muted" style="font-size:11.5px">${s}</div></div></div>`).join('');
+}
+
+/* ---------- DIRECTORY ---------- */
+function dcSvcChips(c){
+  const out=[];
+  if(c.tmt==='IN')out.push('TMT');if(c.ecg==='IN')out.push('ECG');if(c.bmd==='IN')out.push('BMD');if(c.ultrasound==='IN')out.push('USG');if(c.echo==='IN')out.push('2D Echo');
+  if(c.xray==='IN')out.push('X-Ray');if(c.vaccination==='IN')out.push('Vaccin.');if(c.online_consult==='IN')out.push('Online');
+  return out.slice(0,5).map(s=>`<span class="sv">${s}</span>`).join('')+(out.length>5?`<span class="sv">+${out.length-5}</span>`:'');
+}
+function currentDirList(){
+  const q=(document.getElementById('dirSearch').value||'').toLowerCase();
+  const city=document.getElementById('dirCity').value;const svc=document.getElementById('dirSvc').value;
+  return CENTRES.filter(c=>{
+    if(city&&c.city!==city)return false;
+    if(svc==='nabl'&&!c.nabl)return false;if(svc==='iso'&&!c.iso)return false;
+    if(svc&&svc!=='nabl'&&svc!=='iso'&&(MASTER.services||[]).some(x=>x.id===svc)&&c[svc]!=='IN')return false;
+    if(q&&!(c.name.toLowerCase().includes(q)||c.city.toLowerCase().includes(q)||c.pincode.includes(q)))return false;
+    return true;
+  });
+}
+function renderDir(){
+  const q=(document.getElementById('dirSearch').value||'').toLowerCase();
+  const city=document.getElementById('dirCity').value;const svc=document.getElementById('dirSvc').value;
+  let list=CENTRES.filter(c=>{
+    if(city&&c.city!==city)return false;
+    if(svc==='nabl'&&!c.nabl)return false;if(svc==='iso'&&!c.iso)return false;
+    if(svc&&svc!=='nabl'&&svc!=='iso'&&(MASTER.services||[]).some(x=>x.id===svc)&&c[svc]!=='IN')return false;
+    if(q&&!(c.name.toLowerCase().includes(q)||c.city.toLowerCase().includes(q)||c.pincode.includes(q)))return false;
+    return true;
+  });
+  document.getElementById('dirGrid').innerHTML=list.map(c=>`
+    <div class="dc-card" onclick="openProfile(${c.sno})">
+      <div class="dt"><div><div class="dn">${c.name}</div><div class="dcity"><svg viewBox="0 0 24 24" width="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>${c.city} · ${c.pincode}</div></div>${accBadgeSmall(c)}</div>
+      ${(isHC(c)||outServices(c).length)?`<div style="margin:8px 0 2px;display:flex;gap:6px;flex-wrap:wrap">${isHC(c)?hcBadge:''}${outBadge(c)}</div>`:''}
+      <div class="svcs">${dcSvcChips(c)}</div>
+      <div class="dc-hours"><svg viewBox="0 0 24 24" width="11" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Open 7 days · 08:00 AM – 08:00 PM</div>
+      <div class="foot"><span class="muted" style="font-size:11.5px">${c.spoc||'Centre desk'}</span><a onclick="event.stopPropagation();openProfile(${c.sno})">View profile →</a></div>
+    </div>`).join('')||'<div class="muted" style="padding:30px;text-align:center">No centres match these filters.</div>';
+}
+function accBadgeSmall(c){if(c.nabl&&c.iso)return '<span class="badge-c b-both">NABL·ISO</span>';if(c.nabl)return '<span class="badge-c b-nabl">NABL</span>';if(c.iso)return '<span class="badge-c b-iso">ISO</span>';return '';}
+
+/* ---------- CENTER PROFILE (only drill-down) ---------- */
+function openProfile(sno){
+  const c=CENTRES.find(x=>x.sno===sno);if(!c)return;
+  const svcDef=(MASTER.services||[]).map(s=>[s.name.replace(' (Bone Mineral Density)',''),c[s.id]]);
+  const psvc=svcDef.map(([n,v],idx)=>{const sid=(MASTER.services[idx]||{}).id;const cls=v==='IN'?'in':v==='OUT'?'out':'no';const ic=v==='IN'?'✓':v==='OUT'?'~':'✕';
+    let tag='';let tip=n+' — '+(v==='IN'?'In-house service':v==='OUT'?'Outsourced service':'Not available');
+    if(v==='OUT'){const cc=outsourceCost(c,sid);const ct=cc>0?('₹'+cc.toLocaleString()):'as per defined pricing';tag=` <span class="svc-charge">+${cc>0?'₹'+cc.toLocaleString():'charge'}</span>`;tip=n+' — Outsourced · Additional charge: '+ct+' · Payment required before report release';}
+    return `<div class="psvc ${cls}" title="${tip}"><div class="pi">${ic}</div><span>${n}${tag}</span></div>`;}).join('');
+  // Home Collection shown as a service line in the profile catalogue
+  const hcCls=isHC(c)?'in':'no';const hcIc=isHC(c)?'✓':'✕';
+  const psvcAll=psvc+`<div class="psvc ${hcCls}"><div class="pi">${hcIc}</div><span>Home Collection</span></div>`;
+  const acc=(c.nabl?'<span class="badge-c b-nabl" style="font-size:11px">NABL Accredited</span>':'')+(c.iso?' <span class="badge-c b-iso" style="font-size:11px">ISO Certified</span>':'')||'<span class="muted">Accreditation on record</span>';
+  const dir=c.location||('https://www.google.com/maps/search/?api=1&query='+c.lat+','+c.lng);
+  const cov=centreCoverage(c);
+  // Outsourced services at this centre, with charges (registry-driven)
+  const outRows=(MASTER.services||[]).filter(s=>s.outsource&&c[s.id]==='OUT').map(s=>{
+    const cost=outsourceCost(c,s.id);
+    return {name:s.name.replace(' (Bone Mineral Density)',''),cost,costText:cost>0?('₹'+cost.toLocaleString()):'As per defined pricing'};
+  });
+  // Serviceable-pincode chips (sorted), with free/paid styling
+  const pinChips=cov.pins.slice().sort((a,b)=>a.pin.localeCompare(b.pin)).map(p=>`<span class="pin-chip ${p.free?'free':'paid'}" title="${p.localities? p.localities.slice(0,120):''}">${p.pin}</span>`).join('');
+  const covCards=`
+    <div class="cov-cards">
+      <div class="cov-card"><div class="cvn">${cov.total}</div><div class="cvl">Serviceable pincodes</div></div>
+      <div class="cov-card hc"><div class="cvn">${cov.free}</div><div class="cvl">Free home-collection pincodes</div></div>
+      <div class="cov-card"><div class="cvn">${cov.localities||'—'}</div><div class="cvl">Localities / areas covered</div></div>
+    </div>`;
+  document.getElementById('profileCard').innerHTML=`
+    <div class="profile-h"><div class="x" onclick="closeProfile()">✕</div>
+      <div class="pcity"><svg viewBox="0 0 24 24" width="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>${c.city} · ${c.pincode}</div>
+      <h2>${c.name}</h2><div class="pacc">${acc}</div>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><span class="days-badge">✓ Open 7 Days a Week</span><span class="days-badge alt">✓ 08:00 AM – 08:00 PM</span>${isHC(c)?hcBadge.replace('hc-tag','hc-tag lg'):''}${outBadge(c)}</div></div>
+    <div class="profile-b">
+      <div class="psec-label">Basic information</div>
+      <div class="pgrid">
+        <div class="pinfo"><div class="pk"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></div><div class="pv"><b>Address</b><span>${c.address||'—'}</span></div></div>
+        <div class="pinfo"><div class="pk"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"/></svg></div><div class="pv"><b>Contact</b><span>${c.contact?`<a href="tel:${c.contact}">${c.contact}</a>`:'—'}${c.spoc?` · ${c.spoc}`:''}</span></div></div>
+        <div class="pinfo"><div class="pk"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M4 4h16v16H4z"/><path d="m22 6-10 7L2 6"/></svg></div><div class="pv"><b>Email</b><span>${c.email?`<a href="mailto:${c.email}">${c.email}</a>`:'—'}</span></div></div>
+        <div class="pinfo"><div class="pk"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></div><div class="pv"><b>Google location</b><span><a href="${dir}" target="_blank">Open in Maps</a></span></div></div>
+      </div>
+
+      <div class="psec-label">Operational information</div>
+      <div class="op-band"><div class="op-item"><div class="op-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div><div><b>Open 7 Days a Week</b><span>Monday to Sunday</span></div></div><div class="op-item"><div class="op-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div><div><b>08:00 AM – 08:00 PM</b><span>Standard operating hours</span></div></div></div>
+
+      <div class="psec-label">Available services</div>
+      <div class="psvc-grid">${psvcAll}</div>
+
+      <div class="psec-label">Coverage information</div>
+      ${covCards}
+      ${cov.total?`<div class="pin-wrap"><div class="pin-head"><b>Serviceable pincodes</b><span class="pin-legend"><span class="pin-chip free mini"></span>Free <span class="pin-chip paid mini"></span>Paid</span></div><div class="pin-list">${pinChips}</div></div>`:'<div class="muted" style="font-size:12.5px;padding:4px 0">Home-collection pincodes for this centre’s city are not in the current coverage list. Walk-in services remain available.</div>'}
+
+      <div class="net-intel"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg><p>This centre currently serves ${cov.total? '<b>'+cov.total+' pincode'+(cov.total>1?'s':'')+'</b>':'its local area'} and supports both <b>walk-in</b>${isHC(c)?' and <b>home collection</b>':''} services within its designated coverage area.</p></div>
+
+      ${outRows.length?`
+      <div class="psec-label">Outsourced Services &amp; Additional Charges</div>
+      <div class="out-table">
+        <div class="out-row out-head"><span>Service</span><span>Availability</span><span>Additional charge</span></div>
+        ${outRows.map(r=>`<div class="out-row"><span class="out-svc">${r.name}</span><span><span class="pill-out">🟠 Outsourced</span></span><span class="out-charge">🔴 ${r.costText}</span></div>`).join('')}
+      </div>
+      <div class="out-pay"><svg viewBox="0 0 24 24" width="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 6 9 17l-5-5"/></svg><span><b>Payment must be received before report release</b> for outsourced services. In-house services carry no additional charge.</span></div>
+      `:'<div class="psec-label">Outsourced Services</div><div class="all-inhouse">🟢 All available services at this centre are provided <b>in-house</b> — no additional outsourced charges apply.</div>'}
+
+      <div class="pcta"><a class="a1" href="${dir}" target="_blank">Open in Google Maps</a>${c.contact?`<a class="a2" href="tel:${c.contact}">Call centre</a>`:''}</div>
+    </div>`;
+  document.getElementById('profileBg').classList.add('show');document.body.style.overflow='hidden';
+}
+function closeProfile(){document.getElementById('profileBg').classList.remove('show');document.body.style.overflow='';}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeProfile();});
+
+/* ---------- FINDER + MAP ---------- */
+function resCardMini(c){const dist=c._d==null?'':(c._d<0.5?'In area':c._d.toFixed(1)+' km');
+  return `<div class="fl-card" onclick="openProfile(${c.sno})"><div class="fln">${c.name}${isHC(c)?' <span class="hc-dot" title="Home Collection Available">🏠</span>':''}</div><div class="fld">${c.city} · ${c.pincode}${dist?` · <b>${dist}</b>`:''}</div><div class="fl-hours">Open 7 days · 08:00 AM – 08:00 PM</div></div>`;}
+function fillChips(){const cs=uniq(CENTRES.map(c=>c.city)).sort();document.getElementById('findChips').innerHTML=cs.slice(0,7).map(c=>`<span class="chip" onclick="quickFind('${c}')">${c}</span>`).join('');}
+function quickFind(c){document.getElementById('findInput').value=c;runFind();}
+function runFind(){
+  const q=document.getElementById('findInput').value;const r=resolveRef(q);
+  if(!r){document.getElementById('findList').innerHTML='<div class="muted" style="padding:14px">No match. Try a city or 6-digit pincode.</div>';return;}
+  const near=nearestCentres(r.ref,8);
+  document.getElementById('findList').innerHTML=near.map(resCardMini).join('');
+  if(map){map.setView([r.ref.lat,r.ref.lng],11);near[0]&&markers[near[0].sno]&&markers[near[0].sno].openPopup();}
+}
+let map,markers={},hvLayer=null,dcLayer=null;
+const activeLayers={dc:true,hv:true};
+function initMap(){
+  if(typeof L==='undefined'){
+    // Leaflet not ready yet (slow CDN) — retry shortly; never let this block the page
+    document.getElementById('map').innerHTML='<div style="height:100%;display:grid;place-items:center;color:var(--slate);font-size:13px;text-align:center;padding:20px">Loading map…<br><span style="font-size:11px">If the map stays blank, check your connection — the rest of the dashboard works offline.</span></div>';
+    return setTimeout(initMap,600);
+  }
+  map=L.map('map',{scrollWheelZoom:false}).setView([28.55,77.6],8);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap, © CARTO',maxZoom:19}).addTo(map);
+  drawDC();
+  toggleLayers();
+  document.querySelectorAll('.lt').forEach(lt=>lt.onclick=()=>{lt.classList.toggle('off');activeLayers[lt.dataset.layer]=!lt.classList.contains('off');toggleLayers();});
+  setTimeout(()=>map.invalidateSize(),300);
+  let mapShown=false;
+  const mo=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting&&!mapShown){mapShown=true;setTimeout(()=>map.invalidateSize(),200);}}),{threshold:.15});
+  mo.observe(document.getElementById('map'));
+  window.addEventListener('resize',()=>map.invalidateSize());
+}
+function seedFindList(){
+  const seed=CENTRES.slice().sort((a,b)=>(b.ultrasound==='IN')-(a.ultrasound==='IN')).slice(0,8);
+  document.getElementById('findList').innerHTML='<div class="muted" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Featured centres</div>'+seed.map(c=>{c._d=null;return resCardMini(c);}).join('');
+}
+function drawDC(){
+  dcLayer=L.layerGroup();markers={};
+  const byCity={};CENTRES.forEach(c=>{(byCity[c.city]=byCity[c.city]||[]).push(c);});
+  Object.values(byCity).forEach(list=>list.forEach((c,i)=>{
+    const jLat=c.lat+(i-list.length/2)*0.012,jLng=c.lng+(i%2?1:-1)*i*0.011;
+    const svcs=[['TMT',c.tmt],['BMD',c.bmd],['USG',c.ultrasound],['2D Echo',c.echo],['Online',c.online_consult]].filter(s=>s[1]==='IN').map(s=>`<span class="pop-chip">${s[0]}</span>`).join('');
+    const hc=isHC(c);
+    const hcLine=hc?`<div class="pop-hc">🏠 Home Collection Available</div>`:'';
+    const pop=`<div class="pop-name">${c.name}</div><div class="pop-meta">${c.address}<br><b>${c.city} · ${c.pincode}</b></div><div class="pop-hours">🕗 Open 7 days · 08:00 AM – 08:00 PM</div>${hcLine}<div class="pop-svcs">${svcs}</div><div class="pop-btns"><button onclick="openProfile(${c.sno})">Full profile</button><a class="alt" href="${c.location||'https://www.google.com/maps/search/?api=1&query='+jLat+','+jLng}" target="_blank">Maps</a></div>`;
+    const m=L.marker([jLat,jLng],{icon:L.divIcon({className:'',html:`<div class="mk dc${hc?' hc':''}"><b>${c.sno}</b></div>`,iconSize:[30,30],iconAnchor:[15,30]})}).bindPopup(pop,{minWidth:230});
+    markers[c.sno]=m;m.addTo(dcLayer);
+  }));
+  dcLayer.addTo(map);
+}
+function toggleLayers(){
+  if(activeLayers.dc&&!map.hasLayer(dcLayer))dcLayer.addTo(map);
+  if(!activeLayers.dc&&map.hasLayer(dcLayer))map.removeLayer(dcLayer);
+  if(activeLayers.hv){
+    if(!hvLayer){hvLayer=L.layerGroup();MASTER.pincodes.forEach(p=>{const jLat=p.lat+(Math.random()-.5)*0.08,jLng=p.lng+(Math.random()-.5)*0.08;L.circleMarker([jLat,jLng],{radius:4,color:'#C8821A',fillColor:'#C8821A',fillOpacity:.5,weight:1}).bindPopup(`<div class="pop-name">${p.pin}</div><div class="pop-meta">${p.city}, ${p.state}<br>${p.free?'No charge':'Rs '+p.charge}</div>`).addTo(hvLayer);});}
+    hvLayer.addTo(map);
+  }else if(hvLayer&&map.hasLayer(hvLayer))map.removeLayer(hvLayer);
+}
+
+/* ---------- FOOTER ESCALATION ---------- */
+function renderFoot(){
+  document.getElementById('escFoot').innerHTML=MASTER.escalation.filter(e=>/^\d/.test(e.contact)).map(e=>`<div><b>${e.name}</b>${e.level} · <a href="tel:${e.contact}">${e.contact}</a></div>`).join('');
+}
+
+/* ---------- helpers ---------- */
+function scrollTo2(id){document.getElementById(id).scrollIntoView({behavior:'smooth',block:'start'});}
+/* Complete Dashboard PDF — an executive summary: network stats, home-collection highlight,
+   service coverage, accreditation, then the full centre directory. Built offline. */
+function exportDashboardPDF(){
+  const w=window.open('','_blank');
+  if(!w){toast('Allow pop-ups to export PDF');return;}
+  const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const P=MASTER.pincodes, S=(MASTER.services||[]).filter(s=>s.enabled!==false);
+  const inH=k=>CENTRES.filter(c=>c[k]==='IN').length;
+  const cityCount=uniq(CENTRES.map(c=>c.city)).length;
+  const stat=(n,l)=>`<div class="st"><div class="stn">${n}</div><div class="stl">${esc(l)}</div></div>`;
+  const svcRow=s=>{const n=inH(s.id);return `<tr><td>${esc(s.name)}</td><td>${n}</td><td>${Math.round(n/TOTAL*100)}%</td></tr>`;};
+  const dir=directoryAOA(CENTRES);
+  const dHead='<tr>'+dir[0].map(h=>`<th>${esc(h)}</th>`).join('')+'</tr>';
+  const dBody=dir.slice(1).map(r=>'<tr>'+r.map(c=>{const cls=(c==='In-house')?'y':(c==='Outsourced'?'o':(c==='Not available'?'n':''));return `<td class="${cls}">${esc(c)}</td>`;}).join('')+'</tr>').join('');
+  const nabl=CENTRES.filter(c=>c.nabl).length,iso=CENTRES.filter(c=>c.iso).length;
+  const freePin=P.filter(p=>p.free).length;
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Diagnostic Network — Executive Dashboard</title>
+  <style>
+    @page{size:A4 landscape;margin:11mm}
+    *{font-family:Arial,Helvetica,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact;box-sizing:border-box}
+    body{margin:0;color:#0B1A10}
+    .hd{display:flex;align-items:center;gap:12px;border-bottom:3px solid #16A34A;padding-bottom:12px;margin-bottom:16px}
+    .lg{width:38px;height:38px;border-radius:10px;background:#16A34A;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:18px}
+    h1{font-size:20px;margin:0}.sub{font-size:11px;color:#586B5F;margin-top:2px}
+    .meta{margin-left:auto;text-align:right;font-size:10px;color:#586B5F}
+    h2{font-size:13px;color:#0F7A37;margin:18px 0 8px;text-transform:uppercase;letter-spacing:.05em;border-left:3px solid #16A34A;padding-left:8px}
+    .stats{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:6px}
+    .st{flex:1;min-width:120px;border:1px solid #E2EAE4;border-radius:10px;padding:12px}
+    .stn{font-size:24px;font-weight:800;color:#0B1A10}.stl{font-size:10px;color:#586B5F;margin-top:3px}
+    .hv{background:linear-gradient(135deg,#0B2415,#13351F);color:#fff;border-radius:12px;padding:18px 20px;margin:6px 0 4px}
+    .hv h3{margin:0 0 4px;font-size:17px;color:#fff}.hv p{margin:0;color:#AECbBA;font-size:11px}
+    .hv .row{display:flex;flex-wrap:wrap;gap:18px;margin-top:12px}
+    .hv .row div{font-size:11px}.hv .row b{display:block;font-size:20px;color:#7FE6A6}
+    table{width:100%;border-collapse:collapse;font-size:8.5px;margin-top:4px}
+    th{background:#0B2415;color:#fff;text-align:left;padding:5px 5px}
+    td{padding:4px 5px;border-bottom:1px solid #E2EAE4}
+    tr:nth-child(even) td{background:#F7F9F7}
+    td.y{color:#0F7A37;font-weight:bold}td.o{color:#C8821A;font-weight:bold}td.n{color:#B0BBB3}
+    .two{display:flex;gap:18px}.two>div{flex:1}
+    .msg{background:#E8F6EE;border:1px solid #CDEAD8;border-radius:10px;padding:12px 14px;font-size:11px;color:#0F7A37;margin:6px 0}
+    .foot{margin-top:14px;font-size:9px;color:#586B5F;border-top:1px solid #E2EAE4;padding-top:8px}
+    .pb{page-break-before:always}
+  </style></head><body>
+  <div class="hd"><div class="lg">B</div><div><h1>Diagnostic Network — Executive Dashboard</h1><div class="sub">National coverage &amp; service availability · partner briefing</div></div>
+  <div class="meta">As on 08-Jun-2026<br>${TOTAL} centres · ${P.length} home-collection pincodes</div></div>
+
+  <div class="msg">Our network not only provides diagnostic centre services but also offers extensive home collection support across covered cities and pincodes, enabling convenient healthcare access for individuals, corporates and insurance partners.</div>
+
+  <h2>Network overview</h2>
+  <div class="stats">${stat(TOTAL,'Diagnostic centres')}${stat(cityCount,'Cities (centres)')}${stat(uniq(CENTRES.map(c=>STATE_OF[c.city]||'Other')).length,'States')}${stat(uniq(CENTRES.map(c=>c.pincode)).length,'Centre pincodes')}${stat(nabl,'NABL accredited')}${stat(iso,'ISO certified')}</div>
+
+  <h2>Nationwide home collection network</h2>
+  <div class="hv"><h3>🏠 Home Collection Available</h3><p>Doorstep sample collection across covered cities and pincodes.</p>
+    <div class="row"><div><b>${P.length}</b>Serviceable pincodes</div><div><b>${uniq(P.map(p=>p.city)).length}</b>Cities / districts</div><div><b>${uniq(P.map(p=>p.state)).length}</b>States</div><div><b>${freePin}</b>Free-collection pincodes</div><div><b>${Math.round(freePin/P.length*100)}%</b>Zero-charge coverage</div></div></div>
+
+  <h2>Service coverage</h2>
+  <table><tr><th>Service</th><th>Centres offering</th><th>Network coverage</th></tr>${S.map(svcRow).join('')}</table>
+
+  <div class="pb"></div>
+  <h2>Centre directory &amp; service matrix</h2>
+  <table>${dHead}${dBody}</table>
+
+  <div class="foot">Diagnostic Network · Generated from the live network register · Clarity. Trust. Innovation.</div>
+  <script>window.onload=function(){setTimeout(function(){window.print();},300);}<\/script>
+  </body></html>`);
+  w.document.close();
+}
+function fillDirFilters(){const cs=uniq(CENTRES.map(c=>c.city)).sort();document.getElementById('dirCity').innerHTML='<option value="">All cities</option>'+cs.map(c=>`<option>${c}</option>`).join('');document.getElementById('dirTotal').textContent=TOTAL;}
+document.getElementById('findInput').addEventListener('keydown',e=>{if(e.key==='Enter')runFind();});
+
+/* ---------- INIT ---------- */
+function safe(fn,label){try{fn();}catch(e){console.warn('[Dashboard] '+label+' skipped:',e&&e.message);}}
+safe(()=>{if(MASTER._live){const t=document.getElementById('asofTxt');if(t)t.textContent='Live network state · synced from Management';}},'live indicator');safe(renderGauges,'gauges');safe(renderStrip,'stat strip');safe(renderHomeHero,'home hero');safe(renderSvcGrid,'service grid');safe(renderOutPricing,'outsource pricing');safe(renderAcc,'accreditation');safe(renderHomeOnline,'home/online');safe(fillChips,'chips');safe(fillDirFilters,'dir filters');safe(renderDir,'directory');safe(renderFoot,'footer');safe(seedFindList,'finder list');safe(initMap,'map');
+</script>
+</body></html>
